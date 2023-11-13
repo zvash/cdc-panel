@@ -1,0 +1,17 @@
+[
+    {
+        "id": 1,
+        "name": "SuperAdmin",
+        "guard_name": "web"
+    },
+    {
+        "id": 2,
+        "name": "Admin",
+        "guard_name": "web"
+    },
+    {
+        "id": 3,
+        "name": "Appraiser",
+        "guard_name": "web"
+    }
+]
