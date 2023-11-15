@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role as Model;
 use Laravel\Nova\Actions\Actionable;
 
 class Role extends Model
@@ -20,5 +20,10 @@ class Role extends Model
             return $this->name == $roleName;
         }
         return parent::__call($method, $parameters);
+    }
+
+    public function isSupervisor(): bool
+    {
+        return $this->name == 'Supervisor';
     }
 }

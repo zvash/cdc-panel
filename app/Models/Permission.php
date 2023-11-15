@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Laravel\Nova\Actions\Actionable;
+use Spatie\Permission\Models\Permission as Model;
 
 class Permission extends Model
 {

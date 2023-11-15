@@ -1,0 +1,11 @@
+[
+    {
+        "id": 1,
+        "name": "Supervisor",
+        "email": "supervisor@cdc.com",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 0,
+        "avatar": "1.jpeg"
+    }
+]

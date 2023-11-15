@@ -15,7 +15,7 @@ trait Storage
      * @param  string  $disk
      * @return string|null
      */
-    protected function store(string $to, ?string $path, string $disk = 's3')
+    protected function store(string $to, ?string $path, string $disk = 'public')
     {
         return $path ? FileSystem::disk($disk)->putFile($to, new File($this->getSeederPath($path))) : null;
     }

@@ -1,0 +1,82 @@
+[
+    {
+        "name": "User View",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Force Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Restore",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Attach Role",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Detach Role",
+        "guard_name": "web"
+    },
+    {
+        "name": "User View Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Update Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Invite Admin",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Invite Appraiser",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation View",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Create Action",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Force Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Restore",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Resend Action",
+        "guard_name": "web"
+    }
+]

@@ -19,7 +19,7 @@ trait HandlesBeforePolicyGate
             ? $this->bypassAbilities
             : [];
 
-        if ($user->isSuperAdmin() && ! in_array($ability, $bypassAbilities)) {
+        if ($user->isSupervisor() && ! in_array($ability, $bypassAbilities)) {
             return true;
         }
     }

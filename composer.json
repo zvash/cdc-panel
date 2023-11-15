@@ -6,7 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "dniccum/phone-number": "^2.2",
         "guzzlehttp/guzzle": "^7.2",
+        "konsulting/nova-action-buttons": "^0.1",
         "laravel/framework": "^10.10",
         "laravel/nova": "^4.0",
         "laravel/sanctum": "^3.2",

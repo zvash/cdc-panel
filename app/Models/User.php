@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -44,7 +45,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function __call($method, $arguments)
+    public function __call($method, $parameters)
     {
         if (
             preg_match('/^is[A-Z][\w]*/', $method)
@@ -52,17 +53,12 @@ class User extends Authenticatable
         ) {
             return $this->roleDetection($method);
         }
-        return parent::__call($method, $arguments);
+        return parent::__call($method, $parameters);
     }
 
-    /**
-     * Detect logged in user is superadmin or not.
-     *
-     * @return bool
-     */
-    public function isSupervisor(): bool
+    public function invitations(): HasMany
     {
-        return $this->roleDetection('isSupervisor');
+        return $this->hasMany(Invitation::class, 'invited_by');
     }
 
     /**

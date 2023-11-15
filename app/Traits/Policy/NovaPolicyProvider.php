@@ -32,7 +32,32 @@ trait NovaPolicyProvider
     public function viewAny(User $user)
     {
         return $user->hasPermissionTo($this->getPermission('view'))
-            || $this->thereIsLimitedPermissionTo('viewNurse', $user);
+            || $this->thereIsLimitedPermissionTo('viewSelf', $user);
+    }
+
+    /**
+     * Determine whether the user can view resources or not?
+     *
+     * @param \App\Models\User $user
+     * @return mixed
+     * @throws \ReflectionException
+     */
+    public function view(User $user, Model $model)
+    {
+        return $user->hasPermissionTo($this->getPermission('view'))
+            || $this->thereIsLimitedPermissionTo('viewSelf', $user, $model);
+    }
+
+    /**
+     * @param User $user
+     * @param Model $model
+     * @return bool
+     * @throws \ReflectionException
+     */
+    public function update(User $user, Model $model)
+    {
+        return $user->hasPermissionTo($this->getPermission('update'))
+            || $this->thereIsLimitedPermissionTo('updateSelf', $user, $model);
     }
 
     /**
@@ -117,8 +142,7 @@ trait NovaPolicyProvider
     {
         $permission = $this->getPermission($policy);
         $permissionParts = explode(' ', $permission);
-        $method = 'is' . last($permissionParts);
-        $hasPermission = call_user_func([$user, $method]) && $user->checkPermissionTo($permission);
+        $hasPermission = $user->checkPermissionTo($permission);
         if (!$model) {
             return $hasPermission;
         }

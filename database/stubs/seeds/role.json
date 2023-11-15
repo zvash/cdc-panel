@@ -1,16 +1,21 @@
 [
     {
         "id": 1,
-        "name": "SuperAdmin",
+        "name": "Supervisor",
         "guard_name": "web"
     },
     {
         "id": 2,
-        "name": "Admin",
+        "name": "SuperAdmin",
         "guard_name": "web"
     },
     {
         "id": 3,
+        "name": "Admin",
+        "guard_name": "web"
+    },
+    {
+        "id": 4,
         "name": "Appraiser",
         "guard_name": "web"
     }
