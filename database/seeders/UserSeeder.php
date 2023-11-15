@@ -18,10 +18,19 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $this->users()->each(function ($user) {
-            User::create(array_merge($user, [
+            $user = User::create(array_merge($user, [
                 'password' => bcrypt($user['password']),
                 'avatar' => $this->store('users', $user['avatar'] ?? null),
             ]));
+            if ($user->id == 1) {
+                $user->assignRole('Supervisor');
+            } else if ($user->id == 2) {
+                $user->assignRole('SuperAdmin');
+            } else if ($user->id < 5) {
+                $user->assignRole('Admin');
+            } else {
+                $user->assignRole('Appraiser');
+            }
         });
     }
 }

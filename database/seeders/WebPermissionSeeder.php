@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Traits\Seeder\StubHandler;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class WebPermissionSeeder extends Seeder
 {
@@ -17,18 +19,18 @@ class WebPermissionSeeder extends Seeder
      */
     public function run(): void
     {
-
         $this->permissions()->each(function ($permission) {
             $permission = Permission::query()->create($permission);
-//            $model = Permission::query()->firstOrCreate($permission);
-//            if (!$model->hasRole('Administrator')) {
-//                $model->assignRole('Administrator');
-//            }
-            //Permission::query()->firstOrCreate($permission)->syncRoles('Administrator');
-        });
+            if (!$permission->hasRole('SuperAdmin')) {
+                $permission->assignRole('SuperAdmin');
+            }
+            if (!$permission->hasRole('Admin')) {
+                $permission->assignRole('Admin');
+            }
+            if (Str::endsWith($permission->name, 'Self') && !$permission->hasRole('Appraiser')) {
+                $permission->assignRole('Appraiser');
 
-//        User::all()->each(function ($user) {
-//            //$user->syncRoles($user->id > 1 ? 'Administrator' : 'Superadmin');
-//        });
+            }
+        });
     }
 }
