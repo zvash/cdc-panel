@@ -3,10 +3,12 @@
 namespace App\Traits\NovaResource;
 
 use App\Models\Invitation;
+use App\Models\JobFile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use ReflectionClass;
+use ReflectionException;
 
 trait LimitsIndexQuery
 {
@@ -16,7 +18,7 @@ trait LimitsIndexQuery
      * @param NovaRequest $request
      * @param Builder $query
      * @return Builder
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function indexQuery(NovaRequest $request, $query): Builder
     {
@@ -84,18 +86,32 @@ trait LimitsIndexQuery
                 function ($query) {
                     $query->whereHas('roles', function ($query) {
                         $query->where('name', 'Appraiser');
-                    })->orWhereDoesntHave('roles');;
+                    })->orWhereDoesntHave('roles');
                 }
             );
     }
 
+    protected static function handleAppraiserJobFile(NovaRequest $request, Builder $query): Builder
+    {
+        return $query->whereHas('job', function ($query) use ($request) {
+            $query->where('appraiser_id', $request->user()->id);
+        });
+    }
+
     protected static function handleAppraiser($request, $query)
     {
-        $reflectionClass = new \ReflectionClass(self::$model);
-        if ($reflectionClass->hasMethod('appraiser')) {
-            return $query->where('appraiser_id', $request->user()->id);
+        if (self::$model == JobFile::class) {
+            return self::handleAppraiserJobFile($request, $query);
         }
-        return $query;
+        try {
+            $reflectionClass = new ReflectionClass(self::$model);
+            if ($reflectionClass->hasMethod('appraiser')) {
+                return $query->where('appraiser_id', $request->user()->id);
+            }
+            return $query;
+        } catch (ReflectionException) {
+            return $query;
+        }
     }
 
 }

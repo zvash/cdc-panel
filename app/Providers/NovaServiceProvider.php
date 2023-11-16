@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\AppraisalJob;
+use App\Models\User;
+use App\Observers\AppraisalJobObserver;
+use App\Observers\UserObserver;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\Nova;
 use Laravel\Nova\NovaApplicationServiceProvider;
@@ -16,6 +21,14 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+
+        Nova::userTimezone(function (Request $request) {
+            return $request->user()?->timezone;
+        });
+
+        User::observe(UserObserver::class);
+        AppraisalJob::Observe(AppraisalJobObserver::class);
+
     }
 
     /**
@@ -26,9 +39,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     protected function routes()
     {
         Nova::routes()
-                ->withAuthenticationRoutes()
-                ->withPasswordResetRoutes()
-                ->register();
+            ->withAuthenticationRoutes()
+            ->withPasswordResetRoutes()
+            ->register();
     }
 
     /**

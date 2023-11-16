@@ -112,6 +112,9 @@ class User extends Resource
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
+                ->readonly(function (NovaRequest $request) {
+                    return !$request->user()->isSuperAdmin() && !$request->user()->isSupervisor();
+                })
                 ->creationRules('unique:users,email')
                 ->updateRules('unique:users,email,{{resourceId}}'),
 

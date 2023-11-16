@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Appraisal Management Company"
+  },
+  {
+    "id": 2,
+    "name": "Attorney"
+  },
+  {
+    "id": 3,
+    "name": "Credit Company"
+  },
+  {
+    "id": 4,
+    "name": "Home Owner"
+  },
+  {
+    "id": 5,
+    "name": "Lender"
+  },
+  {
+    "id": 6,
+    "name": "Mortgage Broker"
+  },
+  {
+    "id": 7,
+    "name": "Real Estate Agent"
+  },
+  {
+    "id": 8,
+    "name": "Other"
+  }
+]
