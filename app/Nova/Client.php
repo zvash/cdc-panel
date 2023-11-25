@@ -32,6 +32,8 @@ class Client extends Resource
      */
     public static $search = [
         'id',
+        'name',
+        'company_name',
     ];
 
     /**

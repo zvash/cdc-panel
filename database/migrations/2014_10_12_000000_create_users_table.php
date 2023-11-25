@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string('password');
             $table->unsignedInteger('capacity')->default(0);
             $table->rememberToken();
+            $table->json('preferred_appraisal_types')->nullable();
             $table->timestamps();
         });
     }

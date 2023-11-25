@@ -5,6 +5,7 @@ namespace App\Nova;
 use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
@@ -77,25 +78,33 @@ class AppraisalJob extends Resource
 
             BelongsTo::make('Client')
                 ->searchable()
-                ->exceptOnForms()
+                ->showCreateRelationButton()
+                ->help('why on the current website clients have username and password?')
+                ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
                 }),
 
-            Select::make('Client', 'client_id')
-                ->options(\App\Models\Client::all()->pluck('complete_name', 'id'))
-                ->searchable()
-                ->onlyOnForms()
-                ->displayUsingLabels(),
-
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options(\App\Models\AppraisalType::pluck('name', 'id'))
                 ->searchable()
+                ->required()
                 ->displayUsingLabels(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
-                ->exceptOnForms()
+                ->withSubtitles()
+                ->default(function (NovaRequest $request) {
+                    return \App\Models\User::whereHas('roles', function ($roles) {
+                        return $roles->where('name', 'Appraiser');
+                    });
+                })
+                ->relatableQueryUsing(function (NovaRequest $request, $query) {
+                    return $query->whereHas('roles', function ($roles) {
+                        return $roles->where('name', 'Appraiser');
+                    });
+                })
+                //->exceptOnForms()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -104,9 +113,26 @@ class AppraisalJob extends Resource
                 ->options(\App\Models\User::whereHas('roles', function ($roles) {
                     return $roles->where('name', 'Appraiser');
                 })->pluck('name', 'id'))
+                ->help('is it required or Admin can decide later?')
                 ->onlyOnForms()
                 ->searchable()
                 ->displayUsingLabels(),
+
+            Badge::make('Status')->map([
+                \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
+                \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
+                \App\Enums\AppraisalJobStatus::Completed->value => 'success',
+                \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
+            ])->exceptOnForms(),
+
+            Badge::make('On Hold?', 'is_on_hold')
+                ->label(function ($isOnHold) {
+                    return $isOnHold ? 'Yes' : 'No';
+                })->map([
+                    true => 'warning',
+                    false => 'success',
+                ])->withIcons()
+                ->exceptOnForms(),
 
             BelongsTo::make('Reviewer', 'reviewer', User::class)
                 ->searchable()
@@ -118,23 +144,32 @@ class AppraisalJob extends Resource
 
             Select::make('Reviewer', 'reviewer_id')
                 ->options(\App\Models\User::whereHas('roles', function ($roles) {
-                    return $roles->whereIn('name', ['Appraiser', 'Admin', 'SuperAdmin']);
+                    return $roles->whereIn('name', ['Appraiser']);
                 })->pluck('name', 'id'))
                 ->onlyOnForms()
+                ->help('what is this? is it required or can be decided later? who can review?')
                 ->searchable()
                 ->displayUsingLabels(),
 
-            Text::make('Lender')->hideFromIndex(),
+            Text::make('Lender')
+                ->help('what is this? is it required?')
+                ->hideFromIndex(),
 
-            Text::make('Reference Number')->hideFromIndex(),
+            Text::make('Reference Number')
+                ->help('what is this? is it required?')
+                ->hideFromIndex(),
 
-            Text::make('Applicant')->hideFromIndex(),
+            Text::make('Applicant')
+                ->help('what is this? is it required?')
+                ->hideFromIndex(),
 
             Text::make('Email')
+                ->help('is it required?')
                 ->hideFromIndex()
                 ->creationRules('email'),
 
             Date::make('Due Date')
+                ->help('is it required?')
                 ->sortable(),
         ]);
     }
@@ -147,23 +182,28 @@ class AppraisalJob extends Resource
                 ->max(999999.99)
                 ->step(0.01)
                 ->hideFromIndex()
+                ->help('what is this? is it required?')
                 ->nullable(),
 
             Select::make('Payment Terms')
                 ->options(\App\Enums\PaymentTerm::array())
                 ->hideFromIndex()
+                ->help('is it required?')
                 ->displayUsingLabels(),
 
             Select::make('Payment Status')
                 ->options(\App\Enums\PaymentStatus::array())
                 ->hideFromIndex()
+                ->help('is it required?')
                 ->displayUsingLabels(),
 
             Text::make('Invoice Name')
+                ->help('what is this? is it required?')
                 ->hideFromIndex(),
 
             Text::make('Invoice Email')
                 ->hideFromIndex()
+                ->help('what is this? is it required?')
                 ->creationRules('email'),
         ]);
     }
@@ -196,9 +236,11 @@ class AppraisalJob extends Resource
 
             ZipCode::make('Zip Code', 'property_zip')
                 ->hideFromIndex()
+                ->help('is it required?')
                 ->setCountry('CA'),
 
             Text::make('Address', 'property_address')
+                ->help('if we get province, city and zip code is this still required?')
                 ->hideFromIndex(),
         ]);
     }
@@ -206,9 +248,12 @@ class AppraisalJob extends Resource
     public function contactInformation(): Panel
     {
         return $this->panel('Contact Information', [
-            Text::make('Contact Name')->hideFromIndex(),
+            Text::make('Contact Name')
+                ->help('what is this? is it required?')
+                ->hideFromIndex(),
 
             PhoneNumber::make('Contact Phone')
+                ->help('what is this? is it required?')
                 ->hideFromIndex()
                 ->country('CA'),
         ]);

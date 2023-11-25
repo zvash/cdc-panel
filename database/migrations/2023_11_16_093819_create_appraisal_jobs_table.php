@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('appraisal_jobs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained('clients')->nullable();
-            $table->foreignId('appraisal_type_id')->constrained('appraisal_types');
+            $table->foreignId('appraisal_type_id')->constrained('appraisal_types')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('appraiser_id')->constrained('users')->nullable();
             $table->foreignId('reviewer_id')->constrained('users')->nullable();

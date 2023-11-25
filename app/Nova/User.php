@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\MorphToMany;
+use Laravel\Nova\Fields\MultiSelect;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\PasswordConfirmation;
@@ -56,10 +57,13 @@ class User extends Resource
     /**
      * Get the search result subtitle for the resource.
      *
-     * @return string|null
+     * @return string
      */
     public function subtitle()
     {
+        if ($this->isAppraiser()) {
+            return $this->remaining_capacity;
+        }
         return strtolower($this->email);
     }
 
@@ -84,6 +88,7 @@ class User extends Resource
         return [
             $this->properties(),
             $this->panel('Password', $this->password($request)),
+            $this->panel('Preferred Appraisal Types', $this->preferredAppraisalJobTypes()),
             $this->panel('Relations', $this->relations()),
         ];
     }
@@ -207,6 +212,16 @@ class User extends Resource
             PasswordConfirmation::make('Password Confirmation')
                 ->required($request->isCreateOrAttachRequest()),
         ];
+    }
+
+    protected function preferredAppraisalJobTypes()
+    {
+        $options = \App\Models\AppraisalType::pluck('name', 'name');
+        return array_merge([
+            MultiSelect::make('Preferred Appraisal Types', 'preferred_appraisal_types')
+                ->options($options)
+                ->hideFromIndex(),
+        ]);
     }
 
     /**

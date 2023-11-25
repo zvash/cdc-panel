@@ -35,6 +35,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'remaining_capacity',
+    ];
+
     /**
      * The attributes that should be cast.
      *
@@ -43,6 +47,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'preferred_appraisal_types' => 'array',
     ];
 
     public function __call($method, $parameters)
@@ -61,6 +66,11 @@ class User extends Authenticatable
         return $this->hasMany(Invitation::class, 'invited_by');
     }
 
+    private function appraisalJobs(): HasMany
+    {
+        return $this->hasMany(AppraisalJob::class, 'appraiser_id');
+    }
+
     /**
      * Detect user has specific role or not?
      *
@@ -72,5 +82,14 @@ class User extends Authenticatable
         return $this->roles->filter(function ($role) use ($method) {
             return $role->{$method}();
         })->isNotEmpty();
+    }
+
+    public function getRemainingCapacityAttribute(): string
+    {
+        if ($this->isAppraiser()) {
+            $remainingCapacity = $this->capacity - $this->appraisalJobs()->count();
+            return "Remaining Capacity: {$remainingCapacity}";
+        }
+        return "Remaining Capacity: N/A";
     }
 }
