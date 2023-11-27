@@ -2,11 +2,12 @@
 
 namespace App\Nova;
 
-use App\Nova\Actions\InviteUser;
+use App\Nova\Actions\InviteUserAction;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use Laravel\Nova\Fields\Avatar;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\HasMany;
@@ -16,6 +17,7 @@ use Laravel\Nova\Fields\MultiSelect;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\PasswordConfirmation;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Dniccum\PhoneNumber\PhoneNumber;
@@ -87,6 +89,7 @@ class User extends Resource
     {
         return [
             $this->properties(),
+            $this->panel('Info', $this->userInformation($request)),
             $this->panel('Password', $this->password($request)),
             $this->panel('Preferred Appraisal Types', $this->preferredAppraisalJobTypes()),
             $this->panel('Relations', $this->relations()),
@@ -128,11 +131,62 @@ class User extends Resource
                 ->max(50)
                 ->default(10)
                 ->required(),
-
-            PhoneNumber::make('Phone')
-                ->country('CA')
-                ->nullable(),
         ]);
+    }
+
+    protected function userInformation(Request $request): array
+    {
+        return [
+            PhoneNumber::make('Phone')
+                ->countries(['CA', 'US'])
+                ->rules('nullable')
+                ->nullable(),
+
+            BelongsTo::make('Office')
+                ->searchable()
+                ->exceptOnForms()
+                ->nullable(),
+
+            Select::make('Office', 'office_id')
+                ->searchable()
+                ->onlyOnForms()
+                ->options(\App\Models\Office::pluck('city', 'id'))
+                ->nullable(),
+
+            Text::make('Pin')
+                ->rules('nullable', 'digits_between:3,6')
+                ->hideFromIndex()
+                ->nullable(),
+
+            Text::make('Title(s)', 'title')
+                ->rules('nullable', 'max:255')
+                ->hideFromIndex()
+                ->nullable(),
+
+            Text::make('Designation(s)', 'designation')
+                ->rules('nullable', 'max:255')
+                ->hideFromIndex()
+                ->nullable(),
+
+            Number::make('Commission (%)', 'commission')
+                ->rules('nullable', 'numeric', 'min:0', 'max:100')
+                ->min(0)
+                ->max(100)
+                ->hideFromIndex()
+                ->nullable(),
+
+            Number::make('Reviewer Commission (%)', 'reviewer_commission')
+                ->rules('nullable', 'numeric', 'min:0', 'max:100')
+                ->min(0)
+                ->max(100)
+                ->hideFromIndex()
+                ->nullable(),
+
+            Text::make('GST Number', 'gst_number')
+                ->rules('nullable', 'max:255')
+                ->hideFromIndex()
+                ->nullable(),
+        ];
     }
 
     /**
@@ -177,7 +231,7 @@ class User extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new InviteUser())
+            (new InviteUserAction())
                 ->setInviter($request->user())
                 ->confirmText(__('nova.actions.invite_user.confirm_text'))
                 ->confirmButtonText(__('nova.actions.invite_user.confirm_button'))
@@ -185,10 +239,14 @@ class User extends Resource
                 ->standalone()
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $request->user()->isSuperAdmin() || $request->user()->isAdmin();
+                    return $request->user()->isSupervisor()
+                        || $request->user()->isSuperAdmin()
+                        || $request->user()->isAdmin();
                 })
                 ->canRun(function () use ($request) {
-                    return $request->user()->isSuperAdmin() || $request->user()->isAdmin();
+                    return $request->user()->isSupervisor()
+                        || $request->user()->isSuperAdmin()
+                        || $request->user()->isAdmin();
                 }),
         ];
     }

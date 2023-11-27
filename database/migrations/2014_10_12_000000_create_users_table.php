@@ -19,6 +19,12 @@ return new class extends Migration {
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->unsignedInteger('capacity')->default(0);
+            $table->string('pin')->nullable();
+            $table->string('title')->nullable();
+            $table->string('designation')->nullable();
+            $table->unsignedInteger('commission')->nullable();
+            $table->unsignedInteger('reviewer_commission')->nullable();
+            $table->string('gst_number')->nullable();
             $table->rememberToken();
             $table->json('preferred_appraisal_types')->nullable();
             $table->timestamps();

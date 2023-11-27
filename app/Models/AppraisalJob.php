@@ -37,4 +37,14 @@ class AppraisalJob extends Model
     {
         return $this->belongsTo(User::class, 'reviewer_id');
     }
+
+    /**
+     * Get the office that owns the AppraisalJob
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function office(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Office::class);
+    }
 }

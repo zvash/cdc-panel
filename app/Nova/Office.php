@@ -10,21 +10,21 @@ use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class Location extends Resource
+class Office extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
-     * @var class-string<\App\Models\Location>
+     * @var class-string<\App\Models\Office>
      */
-    public static $model = \App\Models\Location::class;
+    public static $model = \App\Models\Office::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
      * @var string
      */
-    public static $title = 'address';
+    public static $title = 'city';
 
     /**
      * The columns that should be searched.
@@ -32,7 +32,6 @@ class Location extends Resource
      * @var array
      */
     public static $search = [
-        'title',
         'address',
         'province',
         'city',
@@ -48,11 +47,6 @@ class Location extends Resource
     {
         return [
             ID::make()->sortable(),
-
-            Text::make('Title')
-                ->creationRules('unique:locations,title')
-                ->updateRules('unique:locations,title,{{resourceId}}')
-                ->sortable(),
 
             Select::make('Province')
                 ->searchable()
@@ -79,14 +73,12 @@ class Location extends Resource
                 ->required(),
 
             PhoneNumber::make('Phone')
-                ->country('CA')
+                ->countries(['CA', 'US'])
+                ->rules('nullable')
                 ->nullable(),
 
             Text::make('Email')
-                ->rules('email')
-                ->nullable(),
-
-            Text::make('Google Map')
+                ->rules('nullable', 'email')
                 ->nullable(),
 
         ];

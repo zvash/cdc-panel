@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -66,7 +67,12 @@ class User extends Authenticatable
         return $this->hasMany(Invitation::class, 'invited_by');
     }
 
-    private function appraisalJobs(): HasMany
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class, 'office_id');
+    }
+
+    public function appraisalJobs(): HasMany
     {
         return $this->hasMany(AppraisalJob::class, 'appraiser_id');
     }

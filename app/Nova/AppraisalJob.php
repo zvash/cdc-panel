@@ -79,7 +79,6 @@ class AppraisalJob extends Resource
             BelongsTo::make('Client')
                 ->searchable()
                 ->showCreateRelationButton()
-                ->help('why on the current website clients have username and password?')
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
@@ -91,32 +90,23 @@ class AppraisalJob extends Resource
                 ->required()
                 ->displayUsingLabels(),
 
+            BelongsTo::make('Office')
+                ->searchable()
+                ->exceptOnForms(),
+
+            Select::make('Office', 'office_id')
+                ->searchable()
+                ->required()
+                ->onlyOnForms()
+                ->options(\App\Models\Office::pluck('city', 'id'))
+                ->displayUsingLabels(),
+
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
-                ->withSubtitles()
-                ->default(function (NovaRequest $request) {
-                    return \App\Models\User::whereHas('roles', function ($roles) {
-                        return $roles->where('name', 'Appraiser');
-                    });
-                })
-                ->relatableQueryUsing(function (NovaRequest $request, $query) {
-                    return $query->whereHas('roles', function ($roles) {
-                        return $roles->where('name', 'Appraiser');
-                    });
-                })
-                //->exceptOnForms()
+                ->exceptOnForms()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
-
-            Select::make('Appraiser', 'appraiser_id')
-                ->options(\App\Models\User::whereHas('roles', function ($roles) {
-                    return $roles->where('name', 'Appraiser');
-                })->pluck('name', 'id'))
-                ->help('is it required or Admin can decide later?')
-                ->onlyOnForms()
-                ->searchable()
-                ->displayUsingLabels(),
 
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
@@ -134,9 +124,19 @@ class AppraisalJob extends Resource
                 ])->withIcons()
                 ->exceptOnForms(),
 
+            BelongsTo::make('Appraiser', 'appraiser', User::class)
+                ->searchable()
+                ->exceptOnForms()
+                ->nullable()
+                ->hideFromIndex()
+                ->displayUsing(function ($user) {
+                    return $user->name;
+                }),
+
             BelongsTo::make('Reviewer', 'reviewer', User::class)
                 ->searchable()
                 ->exceptOnForms()
+                ->nullable()
                 ->hideFromIndex()
                 ->displayUsing(function ($user) {
                     return $user->name;
@@ -145,31 +145,28 @@ class AppraisalJob extends Resource
             Select::make('Reviewer', 'reviewer_id')
                 ->options(\App\Models\User::whereHas('roles', function ($roles) {
                     return $roles->whereIn('name', ['Appraiser']);
-                })->pluck('name', 'id'))
+                })->pluck('name', 'id')->toArray())
+                ->rules('nullable', 'exists:users,id')
+                ->nullable()
                 ->onlyOnForms()
-                ->help('what is this? is it required or can be decided later? who can review?')
                 ->searchable()
                 ->displayUsingLabels(),
 
             Text::make('Lender')
-                ->help('what is this? is it required?')
                 ->hideFromIndex(),
 
             Text::make('Reference Number')
-                ->help('what is this? is it required?')
                 ->hideFromIndex(),
 
             Text::make('Applicant')
-                ->help('what is this? is it required?')
                 ->hideFromIndex(),
 
             Text::make('Email')
-                ->help('is it required?')
                 ->hideFromIndex()
-                ->creationRules('email'),
+                ->nullable()
+                ->creationRules('nullable', 'email'),
 
             Date::make('Due Date')
-                ->help('is it required?')
                 ->sortable(),
         ]);
     }
@@ -182,29 +179,25 @@ class AppraisalJob extends Resource
                 ->max(999999.99)
                 ->step(0.01)
                 ->hideFromIndex()
-                ->help('what is this? is it required?')
                 ->nullable(),
 
             Select::make('Payment Terms')
                 ->options(\App\Enums\PaymentTerm::array())
                 ->hideFromIndex()
-                ->help('is it required?')
                 ->displayUsingLabels(),
 
             Select::make('Payment Status')
                 ->options(\App\Enums\PaymentStatus::array())
                 ->hideFromIndex()
-                ->help('is it required?')
                 ->displayUsingLabels(),
 
             Text::make('Invoice Name')
-                ->help('what is this? is it required?')
                 ->hideFromIndex(),
 
             Text::make('Invoice Email')
                 ->hideFromIndex()
-                ->help('what is this? is it required?')
-                ->creationRules('email'),
+                ->nullable()
+                ->creationRules('nullable', 'email'),
         ]);
     }
 
@@ -234,13 +227,11 @@ class AppraisalJob extends Resource
                 })
                 ->displayUsingLabels(),
 
-            ZipCode::make('Zip Code', 'property_zip')
+            ZipCode::make('Postal Code', 'property_postal_code')
                 ->hideFromIndex()
-                ->help('is it required?')
                 ->setCountry('CA'),
 
             Text::make('Address', 'property_address')
-                ->help('if we get province, city and zip code is this still required?')
                 ->hideFromIndex(),
         ]);
     }
@@ -249,13 +240,15 @@ class AppraisalJob extends Resource
     {
         return $this->panel('Contact Information', [
             Text::make('Contact Name')
-                ->help('what is this? is it required?')
+                ->nullable()
+                ->rules('nullable', 'max:255')
                 ->hideFromIndex(),
 
             PhoneNumber::make('Contact Phone')
-                ->help('what is this? is it required?')
                 ->hideFromIndex()
-                ->country('CA'),
+                ->nullable()
+                ->rules('nullable')
+                ->countries(['CA', 'US']),
         ]);
     }
 

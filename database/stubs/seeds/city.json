@@ -6822,60 +6822,65 @@
     {
         "id": 1365,
         "province_id": 7,
-        "name": "Hantsport"
+        "name": "Halifax"
     },
     {
         "id": 1366,
         "province_id": 7,
-        "name": "Inverness"
+        "name": "Hantsport"
     },
     {
         "id": 1367,
         "province_id": 7,
-        "name": "Joggins"
+        "name": "Inverness"
     },
     {
         "id": 1368,
         "province_id": 7,
-        "name": "Liverpool"
+        "name": "Joggins"
     },
     {
         "id": 1369,
         "province_id": 7,
-        "name": "Louisbourg"
+        "name": "Liverpool"
     },
     {
         "id": 1370,
         "province_id": 7,
-        "name": "New Waterford"
+        "name": "Louisbourg"
     },
     {
         "id": 1371,
         "province_id": 7,
-        "name": "North Sydney"
+        "name": "New Waterford"
     },
     {
         "id": 1372,
         "province_id": 7,
-        "name": "Parrsboro"
+        "name": "North Sydney"
     },
     {
         "id": 1373,
         "province_id": 7,
-        "name": "Port Hood"
+        "name": "Parrsboro"
     },
     {
         "id": 1374,
         "province_id": 7,
-        "name": "Springhill"
+        "name": "Port Hood"
     },
     {
         "id": 1375,
         "province_id": 7,
-        "name": "Sydney Mines"
+        "name": "Springhill"
     },
     {
         "id": 1376,
+        "province_id": 7,
+        "name": "Sydney Mines"
+    },
+    {
+        "id": 1377,
         "province_id": 7,
         "name": "Wedgeport"
     }

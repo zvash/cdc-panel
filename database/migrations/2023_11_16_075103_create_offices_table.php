@@ -10,16 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('offices', function (Blueprint $table) {
             $table->id();
             $table->string('province');
             $table->string('city');
-            $table->string('title')->unique()->nullable();
             $table->string('address');
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
-            $table->text('google_map')->nullable();
-
             $table->timestamps();
         });
     }
@@ -29,6 +26,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('offices');
     }
 };

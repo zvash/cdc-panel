@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             ClientTypeSeeder::class,
             AppraisalTypeSeeder::class,
+            OfficeSeeder::class,
             WebPermissionSeeder::class,
         ]);
     }

@@ -1,0 +1,114 @@
+[
+    {
+        "id": 4,
+        "province": "Alberta (AB)",
+        "city": "Calgary",
+        "address": "888, 3rd Street SW Suite 1000, 10 Floor Bankers Hall West Calgary, ABT2P 5C5",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 3,
+        "province": "Alberta (AB)",
+        "city": "Edmonton",
+        "address": "193 Athabascan Avenue Sherwood Park, AlbertaT8A 4C8",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 13,
+        "province": "Nova Scotia (NS)",
+        "city": "Halifax",
+        "address": "1959 Upper Water Street Suite 1301, Tower 1 Halifax, Nova Scotia B3J 3N2",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 14,
+        "province": "British Columbia (BC)",
+        "city": "Kelowna",
+        "address": "N\/A",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 5,
+        "province": "Alberta (AB)",
+        "city": "Lloydminster",
+        "address": "2006 47 Ave Lloydminster, Alberta S9V 1N8",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 11,
+        "province": "Quebec (QC)",
+        "city": "Montreal",
+        "address": "1250 Ren\u00e9 L\u00e9vesque Boulevard West Suite 2200 Montreal, Quebec H3B 4W8",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 10,
+        "province": "Ontario (ON)",
+        "city": "Ottawa",
+        "address": "343 Preston Street 11th Floor Ottawa, ON K1S 1N4",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 12,
+        "province": "Quebec (QC)",
+        "city": "Qu\u00e9bec",
+        "address": "2828 Boulevard Laurier Suite 700 Quebec City, QC G1V 0B9",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 6,
+        "province": "Alberta (AB)",
+        "city": "Red Deer",
+        "address": "3rd Floor 4915 54 St Red Deer, Alberta T4N 2G7",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 7,
+        "province": "Saskatchewan (SK)",
+        "city": "Regina",
+        "address": "2010-11th Avenue, 7th Floor Regina, Saskatchewan S4P 0J3",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 9,
+        "province": "Ontario (ON)",
+        "city": "Toronto",
+        "address": "TD Tower 161 Bay St 27 Floor Toronto, Ontario M5J 2S1",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 1,
+        "province": "British Columbia (BC)",
+        "city": "Vancouver",
+        "address": "1090 Homer St Suite 300 Vancouver, BC V6B 2W9",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 2,
+        "province": "British Columbia (BC)",
+        "city": "Victoria",
+        "address": "Suite 301800 Yates St Victoria, British Columbia V8W 0B6",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    },
+    {
+        "id": 8,
+        "province": "Manitoba (MB)",
+        "city": "Winnipeg",
+        "address": "201 Portage Avenue, 18th Floor Winnipeg, MB R3B 3K6",
+        "phone": "(866) 479-7922",
+        "email": "info@cdcinc.ca"
+    }
+]

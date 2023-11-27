@@ -10,7 +10,7 @@ use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class ResendInvitation extends Action
+class AssignAppraiserAction extends Action
 {
     use InteractsWithQueue, Queueable;
 

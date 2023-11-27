@@ -12,11 +12,12 @@ return new class extends Migration {
     {
         Schema::create('appraisal_jobs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('clients')->nullable();
-            $table->foreignId('appraisal_type_id')->constrained('appraisal_types')->nullable();
+            $table->foreignId('client_id')->nullable()->constrained('clients');
+            $table->foreignId('appraisal_type_id')->constrained('appraisal_types');
             $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('appraiser_id')->constrained('users')->nullable();
-            $table->foreignId('reviewer_id')->constrained('users')->nullable();
+            $table->foreignId('office_id')->constrained('offices');
+            $table->foreignId('appraiser_id')->nullable()->constrained('users');
+            $table->foreignId('reviewer_id')->nullable()->constrained('users');
             $table->string('lender')->nullable();
             $table->string('reference_number')->nullable();
             $table->string('applicant')->nullable();
@@ -29,7 +30,7 @@ return new class extends Migration {
             $table->string('invoice_email')->nullable();
             $table->string('property_province')->nullable();
             $table->string('property_city')->nullable();
-            $table->string('property_zip')->nullable();
+            $table->string('property_postal_code')->nullable();
             $table->string('property_address')->nullable();
             $table->string('contact_name')->nullable();
             $table->string('contact_phone')->nullable();
