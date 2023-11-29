@@ -93,9 +93,20 @@ class User extends Authenticatable
     public function getRemainingCapacityAttribute(): string
     {
         if ($this->isAppraiser()) {
-            $remainingCapacity = $this->capacity - $this->appraisalJobs()->count();
+            $jobsInHandCount = $this->appraisalJobs()
+                ->where('is_on_hold', false)
+                ->where('status', \App\Enums\AppraisalJobStatus::InProgress)->count();
+            $remainingCapacity = $this->capacity - $jobsInHandCount;
             return "Remaining Capacity: {$remainingCapacity}";
         }
         return "Remaining Capacity: N/A";
+    }
+
+    public function getRemainingCapacityAsInt(): int
+    {
+        $jobsInHandCount = $this->appraisalJobs()
+            ->where('is_on_hold', false)
+            ->where('status', \App\Enums\AppraisalJobStatus::InProgress)->count();
+        return $this->capacity - $jobsInHandCount;
     }
 }

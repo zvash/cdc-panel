@@ -2,8 +2,9 @@
 
 namespace App\Traits\NovaResource;
 
+use App\Enums\AppraisalJobAssignmentStatus;
+use App\Models\AppraisalJob;
 use App\Models\Invitation;
-use App\Models\JobFile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -29,12 +30,22 @@ trait LimitsIndexQuery
             return self::handleUserModel($request, $query);
         } else if (self::$model == Invitation::class) {
             return self::handleInvitationModel($request, $query);
+        } else if (self::$model == AppraisalJob::class) {
+            return self::handleAppraisalJobModel($request, $query);
         } else if ($request->user()->isAppraiser()) {
             return self::handleAppraiser($request, $query);
         }
         return $query;
     }
 
+    protected static function handleAppraisalJobModel(NovaRequest $request, Builder $query): Builder
+    {
+        if ($request->user()->isSuperAdmin() || $request->user()->isAdmin()) {
+            return self::handleAdminAppraisalJobs($query);
+        } else {
+            return self::handleAppraiserAppraisalJobs($request, $query);
+        }
+    }
     protected static function handleInvitationModel(NovaRequest $request, Builder $query): Builder
     {
         if ($request->user()->isSuperAdmin()) {
@@ -89,6 +100,20 @@ trait LimitsIndexQuery
                     })->orWhereDoesntHave('roles');
                 }
             );
+    }
+
+    protected static function handleAdminAppraisalJobs(Builder $query): Builder
+    {
+        return $query;
+    }
+
+    protected static function handleAppraiserAppraisalJobs(NovaRequest $request, Builder $query): Builder
+    {
+        return $query->where('appraiser_id', $request->user()->id)
+            ->orWhereHas('assignments', function ($query) use ($request) {
+                $query->where('appraiser_id', $request->user()->id)
+                    ->where('status', AppraisalJobAssignmentStatus::Pending);
+            });
     }
 
     protected static function handleAppraiserJobFile(NovaRequest $request, Builder $query): Builder

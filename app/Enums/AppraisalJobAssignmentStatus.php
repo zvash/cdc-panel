@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum AcceptStatus: string
+enum AppraisalJobAssignmentStatus: string
 {
     use GenericMethods;
 

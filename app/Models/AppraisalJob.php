@@ -38,6 +38,11 @@ class AppraisalJob extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
+    public function assignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AppraisalJobAssignment::class);
+    }
+
     /**
      * Get the office that owns the AppraisalJob
      *

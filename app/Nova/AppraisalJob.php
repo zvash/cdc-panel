@@ -2,6 +2,8 @@
 
 namespace App\Nova;
 
+use App\Nova\Actions\AssignAppraiserAction;
+use App\Traits\NovaResource\LimitsIndexQuery;
 use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Illuminate\Http\Request;
@@ -20,6 +22,7 @@ use Laravel\Nova\Panel;
 
 class AppraisalJob extends Resource
 {
+    use LimitsIndexQuery;
     /**
      * The model the resource corresponds to.
      *
@@ -301,7 +304,25 @@ class AppraisalJob extends Resource
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        return [
+            (new AssignAppraiserAction())
+                ->onlyOnTableRow()
+                ->setModel($this->resource)
+                ->confirmText(__('nova.actions.invite_user.confirm_text'))
+                ->confirmButtonText(__('nova.actions.invite_user.confirm_button'))
+                ->cancelButtonText(__('nova.actions.invite_user.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $request->user()->isSupervisor()
+                        || $request->user()->isSuperAdmin()
+                        || $request->user()->isAdmin();
+                })
+                ->canRun(function () use ($request) {
+                    return $request->user()->isSupervisor()
+                        || $request->user()->isSuperAdmin()
+                        || $request->user()->isAdmin();
+                }),
+        ];
     }
 
     /**
