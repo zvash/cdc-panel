@@ -7,6 +7,7 @@ use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
+use App\Nova\Filters\OfficeFilter;
 use App\Nova\Lenses\AssignedAppraisalJobs;
 use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
@@ -55,6 +56,11 @@ class AppraisalJob extends Resource
      */
     public static $search = [
         'id',
+        'office'
+    ];
+
+    public static $with = [
+        'office',
     ];
 
     /**
@@ -293,7 +299,12 @@ class AppraisalJob extends Resource
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            (new OfficeFilter())
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+        ];
     }
 
     /**

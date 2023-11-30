@@ -24,7 +24,7 @@ class Office extends Resource
      *
      * @var string
      */
-    public static $title = 'city';
+    public static $title = 'title';
 
     /**
      * The columns that should be searched.
@@ -35,6 +35,7 @@ class Office extends Resource
         'address',
         'province',
         'city',
+        'title',
     ];
 
     /**

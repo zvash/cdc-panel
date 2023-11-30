@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses\Traits;
 
+use App\Nova\Filters\OfficeFilter;
 use App\Nova\User;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
@@ -74,6 +75,22 @@ trait AppraisalJobLensIndex
 
             Date::make('Due Date')
                 ->sortable(),
+        ];
+    }
+
+    /**
+     * Get the filters available for the resource.
+     *
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @return array
+     */
+    public function filters(NovaRequest $request)
+    {
+        return [
+            (new OfficeFilter())
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
         ];
     }
 }

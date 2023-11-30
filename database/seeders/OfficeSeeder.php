@@ -17,6 +17,7 @@ class OfficeSeeder extends Seeder
     public function run(): void
     {
         $this->offices()->each(function ($office) {
+            $office['title'] = $office['city'];
             Office::create($office);
         });
     }

@@ -85,17 +85,6 @@ class OnHoldAppraisalJobs extends Lens
     }
 
     /**
-     * Get the filters available for the lens.
-     *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
-     * @return array
-     */
-    public function filters(NovaRequest $request)
-    {
-        return [];
-    }
-
-    /**
      * Get the actions available on the lens.
      *
      * @param \Laravel\Nova\Http\Requests\NovaRequest $request
