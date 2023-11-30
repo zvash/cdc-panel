@@ -35,7 +35,6 @@ class MarkAsCompleted extends Action
     {
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
-        Log::info('model', [$model->toArray()]);
         if (
             $model->appraiser_id == $user->id
             && $model->status == AppraisalJobStatus::InProgress->value
