@@ -51,10 +51,6 @@ class AppraisalJobPolicy
 
     public function update(User $user, AppraisalJob $model)
     {
-        Log::info('AppraisalJobPolicy@update', [
-            'user' => $user->id,
-            'model' => $model->id,
-        ]);
         return $user->hasManagementAccess()
             || $user->id === $model->appraiser_id
             || $model->assignments()

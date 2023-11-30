@@ -8,6 +8,7 @@ use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
 use App\Nova\Lenses\AssignedAppraisalJobs;
+use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
@@ -309,22 +310,9 @@ class AppraisalJob extends Resource
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
                 }),
-            (new InProgressAppraisalJobs($this->resource))
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess()
-                        || \App\Models\AppraisalJob::query()
-                            ->where('appraiser_id', $request->user()->id)
-                            ->where('status', \App\Enums\AppraisalJobStatus::InProgress)
-                            ->exists();
-                }),
-            (new OnHoldAppraisalJobs($this->resource))
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess()
-                        || \App\Models\AppraisalJob::query()
-                            ->where('appraiser_id', $request->user()->id)
-                            ->where('status', \App\Enums\AppraisalJobStatus::InProgress)
-                            ->exists();
-                }),
+            (new InProgressAppraisalJobs($this->resource)),
+            (new OnHoldAppraisalJobs($this->resource)),
+            (new CompletedAppraisalJobs($this->resource)),
         ];
     }
 
@@ -338,7 +326,7 @@ class AppraisalJob extends Resource
     {
         return [
             (new AssignAppraiserAction())
-                ->onlyOnTableRow()
+                ->exceptOnIndex()
                 ->setModel($this->resource)
                 ->confirmText(__('nova.actions.assign_appraiser.confirm_text'))
                 ->confirmButtonText(__('nova.actions.assign_appraiser.confirm_button'))
@@ -354,7 +342,7 @@ class AppraisalJob extends Resource
                 }),
 
             (new RespondToAssignment())
-                ->onlyOnTableRow()
+                ->exceptOnIndex()
                 ->setModel($this->resource)
                 ->confirmText(__('nova.actions.respond_to_assignment.confirm_text'))
                 ->confirmButtonText(__('nova.actions.respond_to_assignment.confirm_button'))
@@ -383,7 +371,7 @@ class AppraisalJob extends Resource
                             ->exists();
                 }),
             (new PutAppraisalJobOnHold())
-                ->onlyOnTableRow()
+                ->exceptOnIndex()
                 ->showAsButton()
                 ->confirmText(__('nova.actions.put_on_hold.confirm_text'))
                 ->confirmButtonText(__('nova.actions.put_on_hold.confirm_button'))
@@ -411,7 +399,7 @@ class AppraisalJob extends Resource
                         && $this->resource->is_on_hold == false;
                 }),
             (new ResumeAppraisalJob())
-                ->onlyOnTableRow()
+                ->exceptOnIndex()
                 ->showAsButton()
                 ->confirmText(__('nova.actions.resume_job.confirm_text'))
                 ->confirmButtonText(__('nova.actions.resume_job.confirm_button'))
@@ -439,7 +427,7 @@ class AppraisalJob extends Resource
                         && $this->resource->is_on_hold == true;
                 }),
             (new MarkAsCompleted())
-                ->onlyOnTableRow()
+                ->exceptOnIndex()
                 ->confirmText(__('nova.actions.mark_job_as_completed.confirm_text'))
                 ->confirmButtonText(__('nova.actions.mark_job_as_completed.confirm_button'))
                 ->cancelButtonText(__('nova.actions.mark_job_as_completed.cancel_button'))

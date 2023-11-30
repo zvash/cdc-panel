@@ -11,7 +11,7 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
 use Laravel\Nova\Nova;
 
-class OnHoldAppraisalJobs extends Lens
+class CompletedAppraisalJobs extends Lens
 {
     use AppraisalJobLensIndex;
 
@@ -23,41 +23,16 @@ class OnHoldAppraisalJobs extends Lens
     public static $search = [];
 
     /**
-     * Indicates whether the lens should automatically poll for new records.
-     *
-     * @var bool
-     */
-    public static $polling = true;
-
-    /**
-     * The interval (in seconds) at which Nova should poll for new lens.
-     *
-     * @var int
-     */
-    public static $pollingInterval = 10;
-
-    /**
-     * Indicates whether to show the polling toggle button inside Nova.
-     *
-     * @var bool
-     */
-    public static $showPollingToggle = true;
-
-    /**
      * Get the query builder / paginator for the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\LensRequest $request
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Laravel\Nova\Http\Requests\LensRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return mixed
      */
     public static function query(LensRequest $request, $query)
     {
         return $request->withOrdering($request->withFilters(
-            $query->whereIn('status', [
-                AppraisalJobStatus::InProgress,
-                AppraisalJobStatus::Pending,
-            ])
-                ->where('is_on_hold', true)
+            $query->where('status', AppraisalJobStatus::Completed)
                 ->where(function ($query) use ($request) {
                     $user = $request->user();
                     if ($user->hasManagementAccess()) {
@@ -70,13 +45,13 @@ class OnHoldAppraisalJobs extends Lens
 
     public function name()
     {
-        return __("nova.lenses.on_hold_appraisal_jobs.name");
+        return __("nova.lenses.completed_appraisal_jobs.name");
     }
 
     /**
      * Get the cards available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -87,7 +62,7 @@ class OnHoldAppraisalJobs extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -98,7 +73,7 @@ class OnHoldAppraisalJobs extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function actions(NovaRequest $request)
@@ -113,6 +88,6 @@ class OnHoldAppraisalJobs extends Lens
      */
     public function uriKey()
     {
-        return 'on-hold-appraisal-jobs';
+        return 'completed-appraisal-jobs';
     }
 }

@@ -3,12 +3,13 @@
 namespace App\Nova\Actions;
 
 use App\Enums\AppraisalJobStatus;
-use App\Nova\AppraisalJob;
+use App\Models\AppraisalJob;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Konsulting\NovaActionButtons\ShowAsButton;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
@@ -34,9 +35,10 @@ class MarkAsCompleted extends Action
     {
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
+        Log::info('model', [$model->toArray()]);
         if (
-            $model->appraise_id == $user->id
-            && $model->status == AppraisalJobStatus::InProgress
+            $model->appraiser_id == $user->id
+            && $model->status == AppraisalJobStatus::InProgress->value
             && !$model->is_on_hold
         ) {
             $model->setAttribute('status', AppraisalJobStatus::Completed)

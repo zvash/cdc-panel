@@ -56,15 +56,21 @@ return [
 
     'lenses' => [
         'assigned_appraisal_jobs' => [
-            'admin_name' => 'Assigned Appraisals',
-            'appraiser_name' => 'Available Appraisals',
+            'admin_name' => 'Assigned Jobs',
+            'appraiser_name' => 'Available Jobs',
         ],
         'not_assigned_appraisal_jobs' => [
-            'name' => 'Not Assigned Appraisals',
+            'name' => 'Not Assigned Jobs',
         ],
         'in_progress_appraisal_jobs' => [
-            'admin_name' => 'In Progress Appraisals',
-            'appraiser_name' => 'Active Appraisals',
+            'admin_name' => 'In Progress Jobs',
+            'appraiser_name' => 'Active Jobs',
+        ],
+        'completed_appraisal_jobs' => [
+            'name' => 'Completed Jobs',
+        ],
+        'on_hold_appraisal_jobs' => [
+            'name' => 'On Hold Jobs',
         ],
     ],
 
