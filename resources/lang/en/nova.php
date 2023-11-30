@@ -16,8 +16,56 @@ return [
             'confirm_text' => 'Are you sure you want to invite this user?',
             'confirm_button' => 'Invite',
             'cancel_button' => 'Cancel',
-        ]
+        ],
+        'assign_appraiser' => [
+            'confirm_text' => 'Are you sure you want to assign/remove these users to/from the appraisal?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
+        'respond_to_assignment' => [
+            'confirm_text' => 'Are you sure you want to respond to this job assignment?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
+        'put_on_hold' => [
+            'confirm_text' => 'Are you sure you want to put this job on hold?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
+        'resume_job' => [
+            'confirm_text' => 'Are you sure you want to reactivate this job?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
+        'mark_job_as_completed' => [
+            'confirm_text' => 'Are you sure you want to mark this job as completed?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
+    ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Lens Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used in nova admin panel actions.
+    | You are free to modify these language lines according to your application's requirements.
+    |
+    */
+
+    'lenses' => [
+        'assigned_appraisal_jobs' => [
+            'admin_name' => 'Assigned Appraisals',
+            'appraiser_name' => 'Available Appraisals',
+        ],
+        'not_assigned_appraisal_jobs' => [
+            'name' => 'Not Assigned Appraisals',
+        ],
+        'in_progress_appraisal_jobs' => [
+            'admin_name' => 'In Progress Appraisals',
+            'appraiser_name' => 'Active Appraisals',
+        ],
     ],
 
     /*

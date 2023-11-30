@@ -1,186 +1,138 @@
 [
-  {
-    "name": "User View",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Create",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Update",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Force Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Restore",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Attach Role",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Detach Role",
-    "guard_name": "web"
-  },
-  {
-    "name": "User View Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Update Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Invite Admin",
-    "guard_name": "web"
-  },
-  {
-    "name": "User Invite Appraiser",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation View",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Create",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Update",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Create Action",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Force Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Restore",
-    "guard_name": "web"
-  },
-  {
-    "name": "Invitation Resend Action",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType View",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType Create",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType Update",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType Force Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobType Restore",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job View",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Create",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Update",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Force Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Restore",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Attach Appraiser",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Detach Appraiser",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job View Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Accept Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Decline Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Hold",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job UnHold",
-    "guard_name": "web"
-  },
-  {
-    "name": "Job Update Status Self",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile View",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile Create",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile Update",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile Force Delete",
-    "guard_name": "web"
-  },
-  {
-    "name": "JobFile Restore",
-    "guard_name": "web"
-  }
+    {
+        "name": "User View",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Force Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Restore",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Attach Role",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Detach Role",
+        "guard_name": "web"
+    },
+    {
+        "name": "User View Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Update Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Invite Admin",
+        "guard_name": "web"
+    },
+    {
+        "name": "User Invite Appraiser",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation View",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Create Action",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Force Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Restore",
+        "guard_name": "web"
+    },
+    {
+        "name": "Invitation Resend Action",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job View",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Force Delete",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Restore",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Attach Appraiser",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Detach Appraiser",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job View Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Accept Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Decline Self",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Hold",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job UnHold",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Update Status Self",
+        "guard_name": "web"
+    }
 ]

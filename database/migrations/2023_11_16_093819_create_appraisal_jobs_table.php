@@ -37,6 +37,7 @@ return new class extends Migration {
             $table->text('additional_information')->nullable();
             $table->string('status')->default(\App\Enums\AppraisalJobStatus::Pending);
             $table->timestamp('accepted_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->boolean('is_on_hold')->default(false);
             $table->timestamps();
         });

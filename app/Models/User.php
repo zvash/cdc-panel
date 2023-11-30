@@ -90,6 +90,13 @@ class User extends Authenticatable
         })->isNotEmpty();
     }
 
+    public function hasManagementAccess()
+    {
+        return $this->isSupervisor()
+            || $this->isSuperAdmin()
+            || $this->isAdmin();
+    }
+
     public function getRemainingCapacityAttribute(): string
     {
         if ($this->isAppraiser()) {

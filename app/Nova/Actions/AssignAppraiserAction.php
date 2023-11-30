@@ -11,6 +11,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Konsulting\NovaActionButtons\ShowAsButton;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
@@ -76,7 +77,7 @@ class AssignAppraiserAction extends Action
     {
         $appraisers = [];
         $offeredTo = [];
-        if ($this->model->office != null) {
+        if ($this->model && $this->model->office != null) {
             $appraisers = $this->model->office->getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
             $offeredTo = AppraisalJobAssignment::query()
                 ->where('appraisal_job_id', $this->model->id)

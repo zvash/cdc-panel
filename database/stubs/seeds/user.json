@@ -1,56 +1,58 @@
 [
-  {
-    "id": 1,
-    "name": "Supervisor",
-    "email": "supervisor@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  },
-  {
-    "id": 2,
-    "name": "SuperAdmin",
-    "email": "superadmin@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  },
-  {
-    "id": 3,
-    "name": "First Admin",
-    "email": "firstadmin@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  },
-  {
-    "id": 4,
-    "name": "Second Admin",
-    "email": "secondadmin@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  },
-  {
-    "id": 5,
-    "name": "First Appraiser",
-    "email": "firstappraiser@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  },
-  {
-    "id": 6,
-    "name": "Second Appraiser",
-    "email": "secondappraiser@cdc.space",
-    "password": "passwords",
-    "email_verified_at": "2020-11-11 00:00:00",
-    "capacity": 0,
-    "avatar": "1.jpeg"
-  }
+    {
+        "id": 1,
+        "name": "Supervisor",
+        "email": "supervisor@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 0,
+        "avatar": "1.jpeg"
+    },
+    {
+        "id": 2,
+        "name": "SuperAdmin",
+        "email": "superadmin@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 0,
+        "avatar": "1.jpeg"
+    },
+    {
+        "id": 3,
+        "name": "First Admin",
+        "email": "firstadmin@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 0,
+        "avatar": "1.jpeg"
+    },
+    {
+        "id": 4,
+        "name": "Second Admin",
+        "email": "secondadmin@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 0,
+        "avatar": "1.jpeg"
+    },
+    {
+        "id": 5,
+        "name": "First Appraiser",
+        "email": "firstappraiser@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 5,
+        "avatar": "1.jpeg",
+        "office_id": 1
+    },
+    {
+        "id": 6,
+        "name": "Second Appraiser",
+        "email": "secondappraiser@cdc.space",
+        "password": "passwords",
+        "email_verified_at": "2020-11-11 00:00:00",
+        "capacity": 5,
+        "avatar": "1.jpeg",
+        "office_id": 1
+    }
 ]
