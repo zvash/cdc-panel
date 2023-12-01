@@ -226,14 +226,12 @@ class AppraisalJob extends Resource
         return $this->panel('Property Address', [
             Select::make('Property Province')
                 ->searchable()
-                ->required()
                 ->hideFromIndex()
                 ->options(\App\Models\Province::pluck('name', 'name'))
                 ->displayUsingLabels(),
 
             Select::make('Property City')
                 ->searchable()
-                ->required()
                 ->hideFromIndex()
                 ->dependsOn(['property_province'], function (Select $field, NovaRequest $request, FormData $formData) {
                     if ($formData->property_province) {
@@ -247,9 +245,10 @@ class AppraisalJob extends Resource
                 })
                 ->displayUsingLabels(),
 
-            ZipCode::make('Postal Code', 'property_postal_code')
-                ->hideFromIndex()
-                ->setCountry('CA'),
+            Text::make('Postal Code', 'property_postal_code')
+                ->rules('regex:/^[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1} *\d{1}[A-Z]{1}\d{1}$/', 'nullable')
+                ->nullable()
+                ->hideFromIndex(),
 
             Text::make('Address', 'property_address')
                 ->hideFromIndex(),
