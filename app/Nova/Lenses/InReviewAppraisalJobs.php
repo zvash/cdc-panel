@@ -2,21 +2,16 @@
 
 namespace App\Nova\Lenses;
 
-use App\Enums\AppraisalJobAssignmentStatus;
-use App\Nova\Actions\AssignAppraiserAction;
+use App\Enums\AppraisalJobStatus;
 use App\Nova\Lenses\Traits\AppraisalJobLensIndex;
-use App\Nova\User;
-use Laravel\Nova\Fields\Badge;
-use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
 use Laravel\Nova\Nova;
 
-class AssignedAppraisalJobs extends Lens
+class InReviewAppraisalJobs extends Lens
 {
     use AppraisalJobLensIndex;
 
@@ -58,31 +53,29 @@ class AssignedAppraisalJobs extends Lens
     public static function query(LensRequest $request, $query)
     {
         return $request->withOrdering($request->withFilters(
-            $query->whereHas('assignments', function ($query) use ($request) {
-                $user = $request->user();
-                if (!$user->hasManagementAccess()) {
-                    $query->where('status', AppraisalJobAssignmentStatus::Pending)
-                        ->where('appraiser_id', $user->id);
-                } else {
-                    $query->where('status', AppraisalJobAssignmentStatus::Pending);
-                }
-            })
+            $query->where('status', AppraisalJobStatus::InReview)
+                ->where(function ($query) use ($request) {
+                    $user = $request->user();
+                    if ($user->hasManagementAccess()) {
+                        return $query;
+                    }
+                    return $query->whereHas('appraiser', function ($query) use ($user) {
+                        return $query->whereJsonContains('reviewers', "{$user->id}");
+                    });
+                })
         ));
     }
 
     public function name()
     {
-        $name = 'appraiser_name';
-        if (request()->user()->hasManagementAccess()) {
-            $name = 'admin_name';
-        }
-        return __("nova.lenses.assigned_appraisal_jobs.{$name}");
+        return __("nova.lenses.in_review_appraisal_jobs.name");
     }
+
 
     /**
      * Get the cards available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -91,9 +84,20 @@ class AssignedAppraisalJobs extends Lens
     }
 
     /**
+     * Get the filters available for the lens.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function filters(NovaRequest $request)
+    {
+        return [];
+    }
+
+    /**
      * Get the actions available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function actions(NovaRequest $request)
@@ -108,6 +112,6 @@ class AssignedAppraisalJobs extends Lens
      */
     public function uriKey()
     {
-        return 'pending-appraisal-jobs';
+        return 'in-review-appraisal-jobs';
     }
 }

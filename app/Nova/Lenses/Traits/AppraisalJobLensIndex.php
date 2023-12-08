@@ -60,9 +60,12 @@ trait AppraisalJobLensIndex
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
                 \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
+                \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
                 \App\Enums\AppraisalJobStatus::Completed->value => 'success',
                 \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
-            ])->exceptOnForms(),
+            ])
+                ->withIcons()
+                ->exceptOnForms(),
 
             Badge::make('On Hold?', 'is_on_hold')
                 ->label(function ($isOnHold) {

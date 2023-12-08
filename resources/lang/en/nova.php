@@ -42,6 +42,11 @@ return [
             'confirm_button' => 'Yes',
             'cancel_button' => 'Cancel',
         ],
+        'put_job_in_review' => [
+            'confirm_text' => 'Are you sure you want to put this job in review?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*
@@ -65,6 +70,9 @@ return [
         'in_progress_appraisal_jobs' => [
             'admin_name' => 'In Progress Jobs',
             'appraiser_name' => 'Active Jobs',
+        ],
+        'in_review_appraisal_jobs' => [
+            'name' => 'To Review Jobs',
         ],
         'completed_appraisal_jobs' => [
             'name' => 'Completed Jobs',

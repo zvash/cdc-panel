@@ -2,18 +2,22 @@
 
 namespace App\Nova;
 
+use App\Enums\AppraisalJobStatus;
 use App\Nova\Actions\AssignAppraiserAction;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
+use App\Nova\Actions\PutJobInReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\Lenses\AssignedAppraisalJobs;
 use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
+use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Traits\NovaResource\LimitsIndexQuery;
+use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Illuminate\Http\Request;
@@ -131,9 +135,12 @@ class AppraisalJob extends Resource
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
                 \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
+                \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
                 \App\Enums\AppraisalJobStatus::Completed->value => 'success',
                 \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
-            ])->exceptOnForms(),
+            ])
+                ->withIcons()
+                ->exceptOnForms(),
 
             Badge::make('On Hold?', 'is_on_hold')
                 ->label(function ($isOnHold) {
@@ -162,15 +169,15 @@ class AppraisalJob extends Resource
                     return $user->name;
                 }),
 
-            Select::make('Reviewer', 'reviewer_id')
-                ->options(\App\Models\User::whereHas('roles', function ($roles) {
-                    return $roles->whereIn('name', ['Appraiser']);
-                })->pluck('name', 'id')->toArray())
-                ->rules('nullable', 'exists:users,id')
-                ->nullable()
-                ->onlyOnForms()
-                ->searchable()
-                ->displayUsingLabels(),
+//            Select::make('Reviewer', 'reviewer_id')
+//                ->options(\App\Models\User::whereHas('roles', function ($roles) {
+//                    return $roles->whereIn('name', ['Appraiser']);
+//                })->pluck('name', 'id')->toArray())
+//                ->rules('nullable', 'exists:users,id')
+//                ->nullable()
+//                ->onlyOnForms()
+//                ->searchable()
+//                ->displayUsingLabels(),
 
             Text::make('Lender')
                 ->hideFromIndex(),
@@ -250,7 +257,8 @@ class AppraisalJob extends Resource
                 ->nullable()
                 ->hideFromIndex(),
 
-            Text::make('Address', 'property_address')
+            GoogleAutocomplete::make('Address', 'property_address')
+                ->countries('CA')
                 ->hideFromIndex(),
         ]);
     }
@@ -321,6 +329,7 @@ class AppraisalJob extends Resource
                     return $request->user()->hasManagementAccess();
                 }),
             (new InProgressAppraisalJobs($this->resource)),
+            (new InReviewAppraisalJobs($this->resource)),
             (new OnHoldAppraisalJobs($this->resource)),
             (new CompletedAppraisalJobs($this->resource)),
         ];
@@ -447,9 +456,44 @@ class AppraisalJob extends Resource
                         return true;
                     }
                     $user = $request->user();
+                    $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
                     return $user->isAppraiser()
                         && !$this->resource->is_on_hold
-                        && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
+                        && (
+                            ($this->resource->appraiser_id == $user->id && !$user->reviewers)
+                            || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
+                        );
+                })
+                ->canRun(function () use ($request) {
+                    if ($request instanceof ActionRequest) {
+                        return true;
+                    }
+                    $user = $request->user();
+                    $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
+                    return $user->isAppraiser()
+                        && !$this->resource->is_on_hold
+                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
+                        && (
+                            ($this->resource->appraiser_id == $user->id && !$user->reviewers)
+                            || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
+                        );
+                }),
+
+            (new PutJobInReview())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.put_job_in_review.confirm_text'))
+                ->confirmButtonText(__('nova.actions.put_job_in_review.confirm_button'))
+                ->cancelButtonText(__('nova.actions.put_job_in_review.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    if ($request instanceof ActionRequest) {
+                        return true;
+                    }
+                    $user = $request->user();
+                    return $user->isAppraiser()
+                        && !$this->resource->is_on_hold
+                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
                         && $this->resource->appraiser_id == $user->id;
                 })
                 ->canRun(function () use ($request) {
@@ -459,7 +503,7 @@ class AppraisalJob extends Resource
                     $user = $request->user();
                     return $user->isAppraiser()
                         && !$this->resource->is_on_hold
-                        && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
                         && $this->resource->appraiser_id == $user->id;
                 }),
         ];

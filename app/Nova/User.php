@@ -5,15 +5,12 @@ namespace App\Nova;
 use App\Nova\Actions\InviteUserAction;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Log;
 use Laravel\Nova\Fields\Avatar;
 use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\BelongsToMany;
-use Laravel\Nova\Fields\Gravatar;
-use Laravel\Nova\Fields\HasMany;
+use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\MorphToMany;
-use Laravel\Nova\Fields\MultiSelect;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\PasswordConfirmation;
@@ -21,6 +18,7 @@ use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Dniccum\PhoneNumber\PhoneNumber;
+use Outl1ne\MultiselectField\Multiselect;
 use Laravel\Nova\Panel;
 
 class User extends Resource
@@ -82,15 +80,16 @@ class User extends Resource
     /**
      * Get the fields displayed by the resource.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param NovaRequest $request
      * @return array
      */
-    public function fields(Request $request)
+    public function fields(NovaRequest $request)
     {
         return [
             $this->properties(),
             $this->panel('Info', $this->userInformation($request)),
             $this->panel('Password', $this->password($request)),
+            $this->panel('Reviewers', $this->reviewers($request)),
             $this->panel('Preferred Appraisal Types', $this->preferredAppraisalJobTypes()),
             $this->panel('Relations', $this->relations()),
         ];
@@ -136,6 +135,18 @@ class User extends Resource
 
     protected function userInformation(Request $request): array
     {
+        $reviewerOptions = \App\Models\User::query()
+            ->where('id', '!=', $this->id)
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'appraiser');
+            })
+            ->get()
+            ->groupBy('office_id')
+            ->mapWithKeys(function ($users, $officeId) {
+                return [$officeId => $users->pluck('name', 'id')->toArray()];
+            })
+            ->toArray();
+
         return [
             PhoneNumber::make('Phone')
                 ->countries(['CA', 'US'])
@@ -152,6 +163,28 @@ class User extends Resource
                 ->onlyOnForms()
                 ->options(\App\Models\Office::pluck('city', 'id'))
                 ->nullable(),
+
+            MultiSelect::make('Reviewers', 'reviewers')
+                ->placeholder('Select appraisers that can review appraisal jobs')
+                ->saveAsJSON()
+                ->options(\App\Models\User::query()
+                    ->whereHas('roles', function ($query) {
+                        $query->where('name', 'appraiser');
+                    })->pluck('name', 'id'))
+                ->dependsOn(['office_id'], function (MultiSelect $field, NovaRequest $request, FormData $formData) use ($reviewerOptions) {
+                    if (array_key_exists($formData->office_id, $reviewerOptions)) {
+                        Log::info('Found', $reviewerOptions[$formData->office_id]);
+                        $field->options($reviewerOptions[$formData->office_id]);
+                    } else {
+                        $field->options([]);
+                    }
+                })
+                ->hideWhenUpdating(function (NovaRequest $request) {
+                    return !$request->user()->isSupervisor()
+                        && !$request->user()->isSuperAdmin()
+                        && !$request->user()->isAdmin();
+                })
+                ->hideFromIndex(),
 
             Text::make('Pin')
                 ->rules('nullable', 'digits_between:3,6')
@@ -274,11 +307,21 @@ class User extends Resource
 
     protected function preferredAppraisalJobTypes()
     {
-        $options = \App\Models\AppraisalType::pluck('name', 'name');
+        $appraisalTypes = \App\Models\AppraisalType::pluck('name', 'name');
         return array_merge([
             MultiSelect::make('Preferred Appraisal Types', 'preferred_appraisal_types')
-                ->options($options)
+                ->options($appraisalTypes)
+                ->reorderable()
                 ->hideFromIndex(),
+        ]);
+    }
+
+    protected function reviewers(NovaRequest $request)
+    {
+
+        //->pluck('name', 'id');
+        return array_merge([
+
         ]);
     }
 
@@ -287,9 +330,11 @@ class User extends Resource
      *
      * @return array
      */
-    protected function relations(): array
+    protected
+    function relations(): array
     {
         return array_merge([
+
             MorphToMany::make('Roles')
                 ->required()
                 ->searchable()
@@ -305,7 +350,8 @@ class User extends Resource
      * @param int|null $limit
      * @return \Laravel\Nova\Panel
      */
-    protected function panel(string $key, array $fields, ?int $limit = null): Panel
+    protected
+    function panel(string $key, array $fields, ?int $limit = null): Panel
     {
         $panel = new Panel(__($key), $fields);
 

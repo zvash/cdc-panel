@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppraisalJobStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -51,5 +52,27 @@ class AppraisalJob extends Model
     public function office(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Office::class);
+    }
+
+    public function files(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AppraisalJobFile::class);
+    }
+
+    public function nextValidStatus(): AppraisalJobStatus
+    {
+        if ($this->status == AppraisalJobStatus::Pending->value) {
+            return AppraisalJobStatus::InProgress;
+        }
+        if ($this->status == AppraisalJobStatus::InProgress->value) {
+            if ($this->appraiser_id && User::query()->find($this->appraiser_id)->reviewers) {
+                return AppraisalJobStatus::InReview;
+            }
+            return AppraisalJobStatus::Completed;
+        }
+        if ($this->status == AppraisalJobStatus::InReview->value) {
+            return AppraisalJobStatus::Completed;
+        }
+        return AppraisalJobStatus::Pending;
     }
 }

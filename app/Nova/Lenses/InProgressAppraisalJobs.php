@@ -54,7 +54,7 @@ class InProgressAppraisalJobs extends Lens
     public static function query(LensRequest $request, $query)
     {
         return $request->withOrdering($request->withFilters(
-            $query->where('status', AppraisalJobStatus::InProgress)
+            $query->whereIn('status', [AppraisalJobStatus::InProgress->value, AppraisalJobStatus::InReview->value])
                 ->where(function ($query) use ($request) {
                     $user = $request->user();
                     if ($user->hasManagementAccess()) {

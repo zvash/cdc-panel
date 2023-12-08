@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "brandonjbegle/nova4-google-autocomplete-field": "^0.2.2",
         "digitalcloud/zipcode-nova": "^1.0",
         "dniccum/phone-number": "^2.2",
         "guzzlehttp/guzzle": "^7.2",
@@ -15,6 +16,7 @@
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "norman-huth/nova-radio-field": "^1.1",
+        "outl1ne/nova-multiselect-field": "^4.5",
         "spatie/laravel-permission": "^6.0"
     },
     "require-dev": {

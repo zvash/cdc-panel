@@ -35,19 +35,34 @@ class MarkAsCompleted extends Action
     {
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
-        if (
-            $model->appraiser_id == $user->id
-            && $model->status == AppraisalJobStatus::InProgress->value
-            && !$model->is_on_hold
-        ) {
+        $canMarkAsCompletedByAppraiser = $model->appraiser_id == $user->id
+            && !$user->reviewers
+            && $model->status == AppraisalJobStatus::InProgress->value;
+        $canMarkAsCompletedByReviewer = $user->reviewers
+            && in_array($user->id, $model->reviewers)
+            && $model->status == AppraisalJobStatus::InReview->value;
+        $canMarkAsCompleted = $canMarkAsCompletedByAppraiser || $canMarkAsCompletedByReviewer;
+        if (!$model->is_on_hold && $canMarkAsCompleted) {
             $model->setAttribute('status', AppraisalJobStatus::Completed)
-                ->setAttribute('completed_at', Carbon::now())
-                ->save();
+                ->setAttribute('completed_at', Carbon::now());
+            if ($canMarkAsCompletedByAppraiser) {
+                $model->setAttribute('left_in_progress_at', Carbon::now());
+            } else if ($canMarkAsCompletedByReviewer) {
+                $model->setAttribute('reviewed_at', Carbon::now())
+                    ->setAttribute('reviewer_id', $user->id);
+            }
+            $model->save();
+            //TODO: Notify stakeholders
             return Action::message('Appraisal job has been marked as completed.');
         }
         if ($model->is_on_hold) {
             return Action::danger('Appraisal job is on hold.');
         }
+
+        if ($user->reviewers && $model->status == AppraisalJobStatus::InProgress->value) {
+            return Action::danger('Job is not yet in review.');
+        }
+
         return Action::danger('You are not authorized to perform this action.');
     }
 

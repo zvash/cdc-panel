@@ -8,6 +8,7 @@ use App\Nova\Client;
 use App\Nova\Invitation;
 use App\Nova\Lenses\AssignedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
+use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Nova\Office;
@@ -59,6 +60,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     }),
                 MenuItem::lens(AppraisalJob::class, AssignedAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, InProgressAppraisalJobs::class),
+                MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class),
 
             ])->icon('clipboard-list'),
