@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Nova\Client;
 use App\Nova\Invitation;
 use App\Nova\Lenses\AssignedAppraisalJobs;
+use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
@@ -60,10 +61,15 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     }),
                 MenuItem::lens(AppraisalJob::class, AssignedAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, InProgressAppraisalJobs::class),
+                MenuItem::lens(AppraisalJob::class, CompletedAppraisalJobs::class),
+
+            ])->icon('clipboard-list'),
+
+            MenuSection::make('Need Action', [
                 MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class),
 
-            ])->icon('clipboard-list'),
+            ])->icon('eye'),
 
             MenuSection::make('Accounts', [
                 MenuItem::resource(\App\Nova\User::class),
