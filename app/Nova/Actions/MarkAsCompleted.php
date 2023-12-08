@@ -4,6 +4,7 @@ namespace App\Nova\Actions;
 
 use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalJob;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,8 +39,10 @@ class MarkAsCompleted extends Action
         $canMarkAsCompletedByAppraiser = $model->appraiser_id == $user->id
             && !$user->reviewers
             && $model->status == AppraisalJobStatus::InProgress->value;
-        $canMarkAsCompletedByReviewer = $user->reviewers
-            && in_array($user->id, $model->reviewers)
+
+        $appraiser = User::query()->find($model->appraiser_id);
+        $canMarkAsCompletedByReviewer = $appraiser && $appraiser->reviewers
+            && in_array($user->id, $appraiser->reviewers)
             && $model->status == AppraisalJobStatus::InReview->value;
         $canMarkAsCompleted = $canMarkAsCompletedByAppraiser || $canMarkAsCompletedByReviewer;
         if (!$model->is_on_hold && $canMarkAsCompleted) {
@@ -59,8 +62,8 @@ class MarkAsCompleted extends Action
             return Action::danger('Appraisal job is on hold.');
         }
 
-        if ($user->reviewers && $model->status == AppraisalJobStatus::InProgress->value) {
-            return Action::danger('Job is not yet in review.');
+        if ($appraiser && $appraiser->reviewers && $model->status == AppraisalJobStatus::InProgress->value) {
+            return Action::danger('Job needs to be reviewed first.');
         }
 
         return Action::danger('You are not authorized to perform this action.');
