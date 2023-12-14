@@ -14,6 +14,10 @@ class AppraisalJob extends Model
         'due_date' => 'date',
     ];
 
+    protected $appends = [
+        'progress',
+    ];
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -74,5 +78,20 @@ class AppraisalJob extends Model
             return AppraisalJobStatus::Completed;
         }
         return AppraisalJobStatus::Pending;
+    }
+
+    public function getProgressAttribute()
+    {
+        $progress = 0;
+        if ($this->status == AppraisalJobStatus::Pending->value) {
+            $progress = 0;
+        } else if ($this->status == AppraisalJobStatus::InProgress->value) {
+            $progress = 50;
+        } else if ($this->status == AppraisalJobStatus::InReview->value) {
+            $progress = 75;
+        } else if ($this->status == AppraisalJobStatus::Completed->value) {
+            $progress = 100;
+        }
+        return $progress;
     }
 }
