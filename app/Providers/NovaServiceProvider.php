@@ -33,6 +33,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+
+        Nova::userTimezone(function (Request $request) {
+            return $request->user()?->timezone;
+        });
+
         \App\Models\User::observe(UserObserver::class);
         \App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
 

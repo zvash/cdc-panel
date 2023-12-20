@@ -2,21 +2,22 @@
 
 namespace App\Nova;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\File;
+use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
-class AppraisalJobFile extends Resource
+class AppraisalJobRejection extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
-     * @var class-string<\App\Models\AppraisalJobFile>
+     * @var class-string<\App\Models\AppraisalJobRejection>
      */
-    public static $model = \App\Models\AppraisalJobFile::class;
+    public static $model = \App\Models\AppraisalJobRejection::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -60,38 +61,21 @@ class AppraisalJobFile extends Resource
         return [
             ID::make()->sortable(),
 
-            BelongsTo::make('Uploader', 'user', \App\Nova\User::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->displayUsing(function ($user) {
-                    return $user->name;
-                }),
+            BelongsTo::make('Appraisal Job', 'appraisalJob', AppraisalJob::class)
+                ->sortable(),
 
-            BelongsTo::make('Appraisal Job', 'appraisalJob', \App\Nova\AppraisalJob::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->displayUsing(function ($appraisalJob) {
-                    return $appraisalJob->id;
-                }),
+            BelongsTo::make('Rejected By', 'rejectedBy', User::class)
+                ->sortable(),
 
-            Text::make('File', 'id')
-                ->onlyOnIndex()
-                ->displayUsing(function ($id) {
-                    return "<a class='link-default' href='/download-job-file/{$id}' target='_blank'>Download</a>";
-                })->asHtml(),
+            Textarea::make('Reason', 'reason'),
 
-            File::make('File')
-                ->disk('local')
-                ->path('appraisal-job-files')
-                ->displayUsing(function ($file) {
-                    return explode('/', $file)[1];
+            DateTime::make('Rejected At', 'created_at')
+                ->displayUsing(function ($date) use ($request) {
+                    return Carbon::parse($date)
+                        ->setTimezone($request->user()->timezone)
+                        ->format('Y-m-d H:i:s T');
                 })
-                ->onlyOnDetail(),
-
-            Text::make('Comment')
-                ->nullable()
-                ->exceptOnForms()
-                ->rules('nullable', 'string', 'max:255'),
+                ->sortable(),
         ];
     }
 

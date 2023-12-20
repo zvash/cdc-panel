@@ -43,6 +43,11 @@ class AppraisalJobPolicy
         return $user->hasManagementAccess()
             || $user->id === $model->appraiser_id
             || $user->id === $model->reviewer_id
+            || (
+                $model->appraiser
+                && $model->appraiser->reviewers
+                && in_array($user->id, $model->appraiser->reviewers)
+            )
             || $model->assignments()
                 ->where('appraiser_id', $user->id)
                 ->whereIn('status', [AppraisalJobAssignmentStatus::Pending, AppraisalJobAssignmentStatus::Accepted])

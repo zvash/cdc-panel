@@ -48,6 +48,11 @@ class AppraisalJob extends Model
         return $this->hasMany(AppraisalJobAssignment::class);
     }
 
+    public function rejections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AppraisalJobRejection::class, 'appraisal_job_id');
+    }
+
     /**
      * Get the office that owns the AppraisalJob
      *
@@ -80,17 +85,15 @@ class AppraisalJob extends Model
         return AppraisalJobStatus::Pending;
     }
 
-    public function getProgressAttribute()
+    public function getProgressAttribute(): float|int
     {
         $progress = 0;
-        if ($this->status == AppraisalJobStatus::Pending->value) {
-            $progress = 0;
-        } else if ($this->status == AppraisalJobStatus::InProgress->value) {
-            $progress = 50;
+        if ($this->status == AppraisalJobStatus::InProgress->value) {
+            $progress = 0.25;
         } else if ($this->status == AppraisalJobStatus::InReview->value) {
-            $progress = 75;
+            $progress = 0.75;
         } else if ($this->status == AppraisalJobStatus::Completed->value) {
-            $progress = 100;
+            $progress = 1;
         }
         return $progress;
     }

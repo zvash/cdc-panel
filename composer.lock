@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0b0c64a655c525d2b89f1cb42ace9558",
+    "content-hash": "89d9f6a9b003b2d5bde113ba3e47f5f0",
     "packages": [
         {
             "name": "brandonjbegle/nova4-google-autocomplete-field",
@@ -993,6 +993,66 @@
                 }
             ],
             "time": "2023-10-06T06:47:41+00:00"
+        },
+        {
+            "name": "flatroy/nova-progressbar-field",
+            "version": "0.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Flatroy/nova-progressbar-field.git",
+                "reference": "ff8716a3aec11eb1014489bd789079a5def582f1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Flatroy/nova-progressbar-field/zipball/ff8716a3aec11eb1014489bd789079a5def582f1",
+                "reference": "ff8716a3aec11eb1014489bd789079a5def582f1",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Flatroy\\FieldProgressbar\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Flatroy\\FieldProgressbar\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "George Daneke",
+                    "email": "hi@daneke.ge",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Ro Kleine Sonne",
+                    "email": "ro@signifly.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Laravel Nova progress bar field.",
+            "keywords": [
+                "fields",
+                "laravel",
+                "nova",
+                "progress",
+                "progressbar"
+            ],
+            "support": {
+                "issues": "https://github.com/Flatroy/nova-progressbar-field/issues",
+                "source": "https://github.com/Flatroy/nova-progressbar-field/tree/0.0.6"
+            },
+            "time": "2022-12-11T15:35:21+00:00"
         },
         {
             "name": "fruitcake/php-cors",

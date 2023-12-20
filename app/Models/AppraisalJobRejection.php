@@ -4,26 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AppraisalJobFile extends Model
+class AppraisalJobRejection extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'appraisal_job_id',
-        'file',
-        'comment',
+        'user_id',
+        'reason',
     ];
 
-    public function appraisalJob(): BelongsTo
+    public function appraisalJob()
     {
         return $this->belongsTo(AppraisalJob::class);
     }
 
-    public function user(): BelongsTo
+    public function rejectedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

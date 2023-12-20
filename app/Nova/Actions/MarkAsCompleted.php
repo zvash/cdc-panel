@@ -22,7 +22,7 @@ class MarkAsCompleted extends Action
 
     public function name()
     {
-        return 'Mark as Completed';
+        return 'Complete';
     }
 
     /**

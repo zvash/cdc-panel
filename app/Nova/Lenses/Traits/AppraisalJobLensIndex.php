@@ -4,6 +4,7 @@ namespace App\Nova\Lenses\Traits;
 
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\User;
+use Flatroy\FieldProgressbar\FieldProgressbar;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
@@ -74,6 +75,15 @@ trait AppraisalJobLensIndex
                     true => 'warning',
                     false => 'success',
                 ])->withIcons()
+                ->exceptOnForms(),
+
+            FieldProgressbar::make('Progress')
+                ->options([
+                    'color' => '#40BF55',
+                    'fromColor' => '#FFEA82',
+                    'toColor' => '#40BF55',
+                    'animationColor' => false,
+                ])
                 ->exceptOnForms(),
 
             Date::make('Due Date')

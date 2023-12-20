@@ -9,6 +9,7 @@
         "brandonjbegle/nova4-google-autocomplete-field": "^0.2.2",
         "digitalcloud/zipcode-nova": "^1.0",
         "dniccum/phone-number": "^2.2",
+        "flatroy/nova-progressbar-field": "^0.0.6",
         "guzzlehttp/guzzle": "^7.2",
         "konsulting/nova-action-buttons": "^0.1",
         "laravel/framework": "^10.10",

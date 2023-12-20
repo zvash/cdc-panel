@@ -3,10 +3,12 @@
 namespace App\Nova;
 
 use App\Enums\AppraisalJobStatus;
+use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\PutJobInReview;
+use App\Nova\Actions\RejectAfterReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
 use App\Nova\Filters\OfficeFilter;
@@ -20,12 +22,14 @@ use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
+use Flatroy\FieldProgressbar\FieldProgressbar;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\FormData;
+use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
@@ -85,6 +89,8 @@ class AppraisalJob extends Resource
             $this->contactInformation(),
 
             $this->additionalInformations(),
+
+            $this->relations(),
         ];
     }
 
@@ -159,6 +165,15 @@ class AppraisalJob extends Resource
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
+
+            FieldProgressbar::make('Progress')
+                ->options([
+                    'color' => '#40BF55',
+                    'fromColor' => '#FFEA82',
+                    'toColor' => '#40BF55',
+                    'animationColor' => false,
+                ])
+                ->exceptOnForms(),
 
             BelongsTo::make('Reviewer', 'reviewer', User::class)
                 ->searchable()
@@ -352,12 +367,10 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.assign_appraiser.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess()
-                        && $this->resource->appraiser_id === null;
+                    return $this->userCanAssignJob($request);
                 })
                 ->canRun(function () use ($request) {
-                    return $request->user()->hasManagementAccess()
-                        && $this->resource->appraiser_id === null;
+                    return $this->userCanAssignJob($request);
                 }),
 
             (new RespondToAssignment())
@@ -368,26 +381,10 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.respond_to_assignment.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    return $user->isAppraiser()
-                        && $this->resource->assignments()
-                            ->where('appraiser_id', $user->id)
-                            ->where('status', \App\Enums\AppraisalJobAssignmentStatus::Pending)
-                            ->exists();
+                    return $this->appraiserCanRespondToCurrentAssignment($request);
                 })
                 ->canRun(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    return $user->isAppraiser()
-                        && $this->resource->assignments()
-                            ->where('appraiser_id', $user->id)
-                            ->where('status', \App\Enums\AppraisalJobAssignmentStatus::Pending)
-                            ->exists();
+                    return $this->appraiserCanRespondToCurrentAssignment($request);
                 }),
             (new PutAppraisalJobOnHold())
                 ->exceptOnIndex()
@@ -396,26 +393,10 @@ class AppraisalJob extends Resource
                 ->confirmButtonText(__('nova.actions.put_on_hold.confirm_button'))
                 ->cancelButtonText(__('nova.actions.put_on_hold.cancel_button'))
                 ->canSee(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    return $request->user()->hasManagementAccess()
-                        && in_array($this->resource->status, [
-                            \App\Enums\AppraisalJobStatus::Pending->value,
-                            \App\Enums\AppraisalJobStatus::InProgress->value,
-                        ])
-                        && $this->resource->is_on_hold == false;
+                    return $this->userCanPutTheJobOnHold($request);
                 })
                 ->canRun(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    return $request->user()->hasManagementAccess()
-                        && in_array($this->resource->status, [
-                            \App\Enums\AppraisalJobStatus::Pending->value,
-                            \App\Enums\AppraisalJobStatus::InProgress->value,
-                        ])
-                        && $this->resource->is_on_hold == false;
+                    return $this->userCanPutTheJobOnHold($request);
                 }),
             (new ResumeAppraisalJob())
                 ->exceptOnIndex()
@@ -445,6 +426,18 @@ class AppraisalJob extends Resource
                         ])
                         && $this->resource->is_on_hold == true;
                 }),
+            (new AddFile())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.add_file.confirm_text'))
+                ->confirmButtonText(__('nova.actions.add_file.confirm_button'))
+                ->cancelButtonText(__('nova.actions.add_file.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                }),
             (new MarkAsCompleted())
                 ->exceptOnIndex()
                 ->confirmText(__('nova.actions.mark_job_as_completed.confirm_text'))
@@ -452,32 +445,23 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.mark_job_as_completed.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
-                    return $user->isAppraiser()
-                        && !$this->resource->is_on_hold
-                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
-                        && (
-                            ($this->resource->appraiser_id == $user->id && !$user->reviewers)
-                            || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
-                        );
+                    return $this->jobCanBeMarkedAsCompletedByCurrentUser($request);
                 })
                 ->canRun(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
-                    return $user->isAppraiser()
-                        && !$this->resource->is_on_hold
-                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
-                        && (
-                            ($this->resource->appraiser_id == $user->id && !$user->reviewers)
-                            || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
-                        );
+                    return $this->jobCanBeMarkedAsCompletedByCurrentUser($request);
+                }),
+
+            (new RejectAfterReview())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.reject_job.confirm_text'))
+                ->confirmButtonText(__('nova.actions.reject_job.confirm_button'))
+                ->cancelButtonText(__('nova.actions.reject_job.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->userCanRejectJob($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->userCanRejectJob($request);
                 }),
 
             (new PutJobInReview())
@@ -487,26 +471,21 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.put_job_in_review.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    return $user->isAppraiser()
-                        && !$this->resource->is_on_hold
-                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
-                        && $this->resource->appraiser_id == $user->id;
+                    return $this->userIsTheJobsAppraiserAndNextStepIsInReview($request);
                 })
                 ->canRun(function () use ($request) {
-                    if ($request instanceof ActionRequest) {
-                        return true;
-                    }
-                    $user = $request->user();
-                    return $user->isAppraiser()
-                        && !$this->resource->is_on_hold
-                        && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
-                        && $this->resource->appraiser_id == $user->id;
+                    return $this->userIsTheJobsAppraiserAndNextStepIsInReview($request);
                 }),
         ];
+    }
+
+    protected function relations(): Panel
+    {
+        return $this->panel('Relations', [
+            HasMany::make('Files', 'files', AppraisalJobFile::class),
+
+            HasMany::make('Rejections', 'rejections', AppraisalJobRejection::class),
+        ]);
     }
 
     /**
@@ -522,5 +501,115 @@ class AppraisalJob extends Resource
         $panel = new Panel(__($key), $fields);
 
         return $limit ? $panel->limit($limit) : $panel;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function userIsTheJobsAppraiserAndJobIsInProgress(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+            && $this->resource->appraiser_id == $user->id;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function userIsTheJobsAppraiserAndNextStepIsInReview(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
+            && $this->resource->appraiser_id == $user->id;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function jobCanBeMarkedAsCompletedByCurrentUser(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
+            && (
+                ($this->resource->appraiser_id == $user->id && !$user->reviewers)
+                || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
+            );
+    }
+
+    private function userCanRejectJob(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
+        return $appraiser
+            && $appraiser->reviewers
+            && in_array($user->id, $appraiser->reviewers)
+            && !$this->resource->is_on_hold
+            && $this->resource->status == \App\Enums\AppraisalJobStatus::InReview->value;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function userCanPutTheJobOnHold(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        return $request->user()->hasManagementAccess()
+            && in_array($this->resource->status, [
+                \App\Enums\AppraisalJobStatus::Pending->value,
+                \App\Enums\AppraisalJobStatus::InProgress->value,
+            ])
+            && $this->resource->is_on_hold == false;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function appraiserCanRespondToCurrentAssignment(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && $this->resource->assignments()
+                ->where('appraiser_id', $user->id)
+                ->where('status', \App\Enums\AppraisalJobAssignmentStatus::Pending)
+                ->exists();
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function userCanAssignJob(NovaRequest $request): bool
+    {
+        return $request->user()->hasManagementAccess()
+            && $this->resource->appraiser_id === null;
     }
 }

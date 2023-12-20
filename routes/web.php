@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DownloadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/home', function () {
     return view('welcome');
 });
+
+Route::get(
+    '/download-job-file/{appraisalJobFile}',
+    [DownloadController::class, 'downloadAppraisalJobFile'])
+    ->name('download-job-file');
