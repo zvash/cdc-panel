@@ -26,6 +26,11 @@ class InviteUserAction extends Action
      */
     protected $inviter = null;
 
+    public function name(): string
+    {
+        return 'Invite';
+    }
+
     /**
      * @param User $inviter
      * @return InviteUserAction

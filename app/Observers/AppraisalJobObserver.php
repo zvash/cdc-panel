@@ -32,6 +32,12 @@ class AppraisalJobObserver
         ) {
             return;
         }
+        if (
+            array_key_exists('status', $changedFields)
+            && $changedFields['status']['new_value']->value == $changedFields['status']['old_value']
+        ) {
+            return;
+        }
         /** @var \App\Models\AppraisalJobChangeLog $latestLog */
         $latestLog = $this->getLatestChangeLog($appraisalJob);
         $this->updateLastChangeLog($latestLog);
@@ -103,9 +109,12 @@ class AppraisalJobObserver
             }
         }
         if (array_key_exists('status', $changedFields)) {
+            if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Assigned) {
+                return 'assigned';
+            }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {
-                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Pending->value) {
-                    return 'started';
+                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
+                    return 'accepted';
                 }
                 return 'rejected';
             }

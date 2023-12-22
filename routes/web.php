@@ -22,3 +22,8 @@ Route::get(
     '/download-job-file/{appraisalJobFile}',
     [DownloadController::class, 'downloadAppraisalJobFile'])
     ->name('download-job-file');
+
+Route::get(
+    '/download-rejected-job-file/{appraisalJobRejection}',
+    [DownloadController::class, 'downloadRejectedAppraisalJobFile'])
+    ->name('download-rejected-job-file');

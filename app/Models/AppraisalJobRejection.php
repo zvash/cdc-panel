@@ -13,6 +13,7 @@ class AppraisalJobRejection extends Model
         'appraisal_job_id',
         'user_id',
         'reason',
+        'file',
     ];
 
     public function appraisalJob()

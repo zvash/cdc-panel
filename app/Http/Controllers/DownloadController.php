@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppraisalJobFile;
+use App\Models\AppraisalJobRejection;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,24 @@ class DownloadController extends Controller
             return response()->download(
                 storage_path('app/' . $appraisalJobFile->file),
                 explode('/', $appraisalJobFile->file)[1]
+            );
+        } else {
+            abort(403);
+        }
+    }
+
+    public function downloadRejectedAppraisalJobFile(AppraisalJobRejection $appraisalJobRejection)
+    {
+        /** @var  User $user */
+        $user = auth()->user();
+        if (
+            $user->hasManagementAccess()
+            || $user->id === $appraisalJobRejection->user_id
+            || $user->id === $appraisalJobRejection->appraisalJob->appraiser_id
+        ) {
+            return response()->download(
+                storage_path('app/' . $appraisalJobRejection->file),
+                explode('/', $appraisalJobRejection->file)[1]
             );
         } else {
             abort(403);

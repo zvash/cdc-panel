@@ -60,10 +60,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Appraisal Jobs', [
                 MenuItem::resource(AppraisalJob::class),
-                MenuItem::lens(AppraisalJob::class, NotAssignedAppraisalJobs::class)
-                    ->canSee(function ($request) {
-                        return $request->user()->hasManagementAccess();
-                    }),
                 MenuItem::lens(AppraisalJob::class, AssignedAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, InProgressAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, CompletedAppraisalJobs::class),
@@ -71,6 +67,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             ])->icon('clipboard-list'),
 
             MenuSection::make('Need Action', [
+                MenuItem::lens(AppraisalJob::class, NotAssignedAppraisalJobs::class)
+                    ->canSee(function ($request) {
+                        return $request->user()->hasManagementAccess();
+                    }),
                 MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class),
 

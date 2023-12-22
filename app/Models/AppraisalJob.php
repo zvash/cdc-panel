@@ -76,6 +76,9 @@ class AppraisalJob extends Model
     public function nextValidStatus(): AppraisalJobStatus
     {
         if ($this->status == AppraisalJobStatus::Pending->value) {
+            return AppraisalJobStatus::Assigned;
+        }
+        if ($this->status == AppraisalJobStatus::Assigned->value) {
             return AppraisalJobStatus::InProgress;
         }
         if ($this->status == AppraisalJobStatus::InProgress->value) {
@@ -93,10 +96,12 @@ class AppraisalJob extends Model
     public function getProgressAttribute(): float|int
     {
         $progress = 0;
-        if ($this->status == AppraisalJobStatus::InProgress->value) {
-            $progress = 0.25;
+        if ($this->status == AppraisalJobStatus::Assigned->value) {
+            $progress = 0.33;
+        } else if ($this->status == AppraisalJobStatus::InProgress->value) {
+            $progress = 0.66;
         } else if ($this->status == AppraisalJobStatus::InReview->value) {
-            $progress = 0.75;
+            $progress = 0.66;
         } else if ($this->status == AppraisalJobStatus::Completed->value) {
             $progress = 1;
         }

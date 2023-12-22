@@ -5,12 +5,14 @@ namespace App\Nova\Actions;
 use App\Models\AppraisalJobRejection;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Konsulting\NovaActionButtons\ShowAsButton;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
 class RejectAfterReview extends Action
@@ -60,18 +62,27 @@ class RejectAfterReview extends Action
                 ->setAttribute('reviewer_id', auth()->user()->id)
                 ->save();
 
+            $path = null;
+            /** @var UploadedFile $file */
+            if ($fields->file) {
+                $file = $fields->file;
+                $fileName = mt_rand(1000000, 9999999) . '-' . $file->getClientOriginalName();
+                $path = $file->storeAs('review-rejected-files', $fileName, ['disk' => 'local']);
+            }
+
             AppraisalJobRejection::query()
                 ->create([
                     'user_id' => auth()->user()->id,
                     'appraisal_job_id' => $appraisalJob->id,
                     'reviewer_id' => auth()->user()->id,
                     'reason' => $fields->reason,
+                    'file' => $path ?? null,
                 ]);
             DB::commit();
             return Action::message('Appraisal job has been rejected.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return Action::danger('An error occurred while rejecting the appraisal job. ' . $e->getMessage());
+            return Action::danger('An error occurred while rejecting the appraisal job.');
         }
     }
 
@@ -86,6 +97,9 @@ class RejectAfterReview extends Action
         return [
             \Laravel\Nova\Fields\Textarea::make('Reason', 'reason')
                 ->rules('required'),
+
+            File::make('File')
+                ->rules('nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,csv,jpg,jpeg,png,svg,webp'),
         ];
     }
 }

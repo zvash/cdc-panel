@@ -36,6 +36,12 @@ class Client extends Resource
         'company_name',
     ];
 
+    public static function redirectAfterCreate(NovaRequest $request, $resource)
+    {
+        return '/resources/'.static::uriKey();
+    }
+
+
     /**
      * Get the fields displayed by the resource.
      *

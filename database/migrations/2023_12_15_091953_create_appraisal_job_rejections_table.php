@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('appraisal_job_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->text('reason');
+            $table->text('file')->nullable();
             $table->timestamps();
         });
     }

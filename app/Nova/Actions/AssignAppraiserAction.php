@@ -63,7 +63,7 @@ class AssignAppraiserAction extends Action
                 'assigned_by' => auth()->user()->id,
                 'status' => AppraisalJobAssignmentStatus::Pending
             ])->toArray(), ['appraisal_job_id', 'appraiser_id'], ['status']);
-
+        $this->model->setAttribute('status', AppraisalJobStatus::Assigned)->save();
         return Action::message("job assignment updated successfully based on your selection.");
     }
 

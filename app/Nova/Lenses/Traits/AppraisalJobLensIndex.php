@@ -9,7 +9,9 @@ use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Line;
 use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
 
@@ -41,6 +43,13 @@ trait AppraisalJobLensIndex
                     return $client->complete_name;
                 }),
 
+            Stack::make('Address', [
+                Line::make('Property Address')->asHeading(),
+                Line::make('Property Postal Code')->asSmall(),
+                Line::make('Property City')->asSmall(),
+                Line::make('Property Province')->asSmall(),
+            ])->onlyOnIndex(),
+
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options(\App\Models\AppraisalType::pluck('name', 'id'))
                 ->searchable()
@@ -59,7 +68,8 @@ trait AppraisalJobLensIndex
                 }),
 
             Badge::make('Status')->map([
-                \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
+                \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
+                \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
                 \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
                 \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
                 \App\Enums\AppraisalJobStatus::Completed->value => 'success',
@@ -75,6 +85,9 @@ trait AppraisalJobLensIndex
                     true => 'warning',
                     false => 'success',
                 ])->withIcons()
+                ->hideFromIndex(function () {
+                    return auth()->user()->hasManagementAccess();
+                })
                 ->exceptOnForms(),
 
             FieldProgressbar::make('Progress')

@@ -22,7 +22,7 @@ class PutAppraisalJobOnHold extends Action
 
     public function name()
     {
-        return 'Pause';
+        return 'Hold';
     }
 
     /**

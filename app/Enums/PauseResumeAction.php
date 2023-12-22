@@ -6,6 +6,6 @@ enum PauseResumeAction: string
 {
     use GenericMethods;
 
-    case Pause = 'pause';
-    case Resume = 'resume';
+    case Pause = 'hold';
+    case Resume = 'release';
 }

@@ -21,7 +21,7 @@ class ResumeAppraisalJob extends Action
 
     public function name()
     {
-        return 'Resume';
+        return 'Release';
     }
 
     /**
@@ -50,7 +50,7 @@ class ResumeAppraisalJob extends Action
                 DB::rollBack();
                 return Action::danger('Cannot process your request.');
             }
-            return Action::message('Appraisal job has been reactivated.');
+            return Action::message('Appraisal job has been released.');
         }
         return Action::danger('You are not authorized to perform this action.');
     }

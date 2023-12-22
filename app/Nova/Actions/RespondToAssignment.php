@@ -119,18 +119,20 @@ class RespondToAssignment extends Action
 
     private function acceptJob($user)
     {
-        $updated = DB::update(
-            'UPDATE appraisal_jobs SET appraiser_id = ?, status = ?, accepted_at = NOW() WHERE id = ? AND appraiser_id IS NULL',
-            [
-                $user->id,
-                AppraisalJobStatus::InProgress->value,
-                $this->model->id
-            ]);
+        $job = AppraisalJob::query()
+            ->where('id', $this->model->id)
+            ->whereNull('appraiser_id')
+            ->first();
 
-        if ($updated == 0) {
+        if (!$job) {
             DB::rollBack();
             throw new \Exception('An appraiser has already accepted this job.');
         }
+
+        $job->setAttribute('appraiser_id', $user->id)
+            ->setAttribute('status', AppraisalJobStatus::InProgress)
+            ->setAttribute('accepted_at', now())
+            ->save();
 
         $this->model->assignments()
             ->where('appraiser_id', '<>', $user->id)

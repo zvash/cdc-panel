@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -67,6 +69,9 @@ class AppraisalJobRejection extends Resource
             BelongsTo::make('Rejected By', 'rejectedBy', User::class)
                 ->sortable(),
 
+            Text::make('Reason', 'reason')
+                ->onlyOnIndex(),
+
             Textarea::make('Reason', 'reason'),
 
             DateTime::make('Rejected At', 'created_at')
@@ -76,6 +81,26 @@ class AppraisalJobRejection extends Resource
                         ->format('Y-m-d H:i:s T');
                 })
                 ->sortable(),
+
+            Text::make('File', 'id')
+                ->onlyOnIndex()
+                ->displayUsing(function ($id) {
+                    if (!$this->file) {
+                        return '-';
+                    }
+                    return "<a class='link-default' href='/download-rejected-job-file/{$id}' target='_blank'>Download</a>";
+                })->asHtml(),
+
+            File::make('File')
+                ->disk('local')
+                ->path('review-rejected-files')
+                ->displayUsing(function ($file) {
+                    if (!$file) {
+                        return '-';
+                    }
+                    return explode('/', $file)[1];
+                })
+                ->onlyOnDetail(),
         ];
     }
 

@@ -31,8 +31,10 @@ use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Line;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\ActionRequest;
@@ -71,6 +73,21 @@ class AppraisalJob extends Resource
         'office',
     ];
 
+    public static function label()
+    {
+        return 'All Jobs';
+    }
+
+    public static function createButtonLabel()
+    {
+        return 'Create Job';
+    }
+
+    public static function updateButtonLabel()
+    {
+        return 'Update Job';
+    }
+
     /**
      * Get the fields displayed by the resource.
      *
@@ -82,9 +99,9 @@ class AppraisalJob extends Resource
         return [
             $this->orderInformation(),
 
-            $this->paymentInformation(),
-
             $this->propertyAddress(),
+
+            $this->paymentInformation(),
 
             $this->contactInformation(),
 
@@ -108,11 +125,19 @@ class AppraisalJob extends Resource
 
             BelongsTo::make('Client')
                 ->searchable()
+                ->withoutTrashed()
                 ->showCreateRelationButton()
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
                 }),
+
+            Stack::make('Address', [
+                Line::make('Property Address')->asHeading(),
+                Line::make('Property Postal Code')->asSmall(),
+                Line::make('Property City')->asSmall(),
+                Line::make('Property Province')->asSmall(),
+            ])->onlyOnIndex(),
 
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options(\App\Models\AppraisalType::pluck('name', 'id'))
@@ -139,7 +164,8 @@ class AppraisalJob extends Resource
                 }),
 
             Badge::make('Status')->map([
-                \App\Enums\AppraisalJobStatus::Pending->value => 'warning',
+                \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
+                \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
                 \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
                 \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
                 \App\Enums\AppraisalJobStatus::Completed->value => 'success',
@@ -155,6 +181,9 @@ class AppraisalJob extends Resource
                     true => 'warning',
                     false => 'success',
                 ])->withIcons()
+                ->hideFromIndex(function () {
+                    return auth()->user()->hasManagementAccess();
+                })
                 ->exceptOnForms(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
@@ -206,6 +235,7 @@ class AppraisalJob extends Resource
             Text::make('Email')
                 ->hideFromIndex()
                 ->nullable()
+                ->placeholder('N/A')
                 ->creationRules('nullable', 'email'),
 
             Date::make('Due Date')
@@ -216,6 +246,21 @@ class AppraisalJob extends Resource
     public function paymentInformation(): Panel
     {
         return $this->panel('Payment Information', [
+
+            Select::make('Province (for tax)', 'province')
+                ->searchable()
+                ->hideFromIndex()
+                ->options(\App\Models\Province::pluck('name', 'name'))
+                ->displayUsingLabels(),
+
+            Number::make('Tax (%)', 'tax')
+                ->min(0)
+                ->max(100)
+                ->step(0.01)
+                ->rules('nullable', 'numeric', 'min:0', 'max:100')
+                ->hideFromIndex()
+                ->nullable(),
+
             Currency::make('Fee Quoted')
                 ->min(0)
                 ->max(999999.99)
@@ -239,7 +284,16 @@ class AppraisalJob extends Resource
             Text::make('Invoice Email')
                 ->hideFromIndex()
                 ->nullable()
+                ->placeholder('N/A')
                 ->creationRules('nullable', 'email'),
+
+            Text::make('Payment Link')
+                ->hideFromIndex()
+                ->nullable()
+                ->rules('nullable', 'url')
+                ->displayUsing(function ($value) {
+                    return "<a href='$value' target='_blank'>$value</a>";
+                }),
         ]);
     }
 
@@ -250,6 +304,8 @@ class AppraisalJob extends Resource
                 ->searchable()
                 ->hideFromIndex()
                 ->options(\App\Models\Province::pluck('name', 'name'))
+                ->required()
+                ->rules('required')
                 ->displayUsingLabels(),
 
             Select::make('Property City')
@@ -265,15 +321,19 @@ class AppraisalJob extends Resource
                         $field->options([]);
                     }
                 })
+                ->required()
+                ->rules('required')
                 ->displayUsingLabels(),
 
             Text::make('Postal Code', 'property_postal_code')
                 ->rules('regex:/^[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1} *\d{1}[A-Z]{1}\d{1}$/', 'nullable')
                 ->nullable()
+                ->required()
                 ->hideFromIndex(),
 
             GoogleAutocomplete::make('Address', 'property_address')
                 ->countries('CA')
+                ->required()
                 ->hideFromIndex(),
         ]);
     }
@@ -411,7 +471,9 @@ class AppraisalJob extends Resource
                     return $request->user()->hasManagementAccess()
                         && in_array($this->resource->status, [
                             \App\Enums\AppraisalJobStatus::Pending->value,
+                            \App\Enums\AppraisalJobStatus::Assigned->value,
                             \App\Enums\AppraisalJobStatus::InProgress->value,
+                            \App\Enums\AppraisalJobStatus::InReview->value,
                         ])
                         && $this->resource->is_on_hold == true;
                 })
@@ -422,7 +484,9 @@ class AppraisalJob extends Resource
                     return $request->user()->hasManagementAccess()
                         && in_array($this->resource->status, [
                             \App\Enums\AppraisalJobStatus::Pending->value,
+                            \App\Enums\AppraisalJobStatus::Assigned->value,
                             \App\Enums\AppraisalJobStatus::InProgress->value,
+                            \App\Enums\AppraisalJobStatus::InReview->value,
                         ])
                         && $this->resource->is_on_hold == true;
                 }),
@@ -583,7 +647,9 @@ class AppraisalJob extends Resource
         return $request->user()->hasManagementAccess()
             && in_array($this->resource->status, [
                 \App\Enums\AppraisalJobStatus::Pending->value,
+                \App\Enums\AppraisalJobStatus::Assigned->value,
                 \App\Enums\AppraisalJobStatus::InProgress->value,
+                \App\Enums\AppraisalJobStatus::InReview->value,
             ])
             && $this->resource->is_on_hold == false;
     }
