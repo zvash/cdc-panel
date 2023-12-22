@@ -79,6 +79,11 @@ class User extends Authenticatable
         return $this->hasMany(AppraisalJob::class, 'appraiser_id');
     }
 
+    public function changeLogs(): HasMany
+    {
+        return $this->hasMany(AppraisalJobChangeLog::class);
+    }
+
     /**
      * Detect user has specific role or not?
      *

@@ -68,6 +68,11 @@ class AppraisalJob extends Model
         return $this->hasMany(AppraisalJobFile::class);
     }
 
+    public function changeLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AppraisalJobChangeLog::class);
+    }
+
     public function nextValidStatus(): AppraisalJobStatus
     {
         if ($this->status == AppraisalJobStatus::Pending->value) {

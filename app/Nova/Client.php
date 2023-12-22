@@ -23,7 +23,7 @@ class Client extends Resource
      *
      * @var string
      */
-    public static $title = 'id';
+    public static $title = 'company_name';
 
     /**
      * The columns that should be searched.
@@ -44,11 +44,16 @@ class Client extends Resource
      */
     public function fields(NovaRequest $request)
     {
+        $clientTypes = \App\Models\ClientType::query()
+            ->orderBy('id')
+            ->get()
+            ->pluck('name', 'id')
+            ->toArray();
         return [
             ID::make()->sortable(),
 
             Select::make('Client Type', 'client_type_id')
-                ->options(\App\Models\ClientType::pluck('name', 'id'))
+                ->options($clientTypes)
                 ->displayUsingLabels()
                 ->searchable()
                 ->required()

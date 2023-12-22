@@ -54,9 +54,6 @@ class RejectAfterReview extends Action
 
         DB::beginTransaction();
         try {
-            //update appraisal job change log
-
-            //reject the appraisal job and send it back to in progress
             $appraisalJob->setAttribute('status', \App\Enums\AppraisalJobStatus::InProgress)
                 ->setAttribute('reviewed_at', \Carbon\Carbon::now())
                 ->setAttribute('left_in_progress_at', null)

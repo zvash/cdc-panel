@@ -485,6 +485,8 @@ class AppraisalJob extends Resource
             HasMany::make('Files', 'files', AppraisalJobFile::class),
 
             HasMany::make('Rejections', 'rejections', AppraisalJobRejection::class),
+
+            HasMany::make('Change Logs', 'changeLogs', AppraisalJobChangeLog::class),
         ]);
     }
 

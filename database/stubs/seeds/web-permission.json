@@ -134,5 +134,21 @@
     {
         "name": "Appraisal Job Update Status Self",
         "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Change Log View",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Change Log Create",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Change Log Update",
+        "guard_name": "web"
+    },
+    {
+        "name": "Appraisal Job Change Log Delete",
+        "guard_name": "web"
     }
 ]
