@@ -27,6 +27,16 @@ class RespondToAssignment extends Action
 
     private $errorMessage = 'Cannot process your request.';
 
+    private $source = 'detail';
+
+    public function __construct()
+    {
+        $request = request()->all();
+        if (isset($request['display'])) {
+            $this->source = $request['display'];
+        }
+    }
+
     public function name(): string
     {
         return 'Respond';
@@ -50,12 +60,6 @@ class RespondToAssignment extends Action
         $user = auth()->user();
         $jobId = $models->first()->id;
         $this->model = AppraisalJob::query()->find($jobId);
-        Log::info('processable', [
-            'isUserAssigned' => !$this->isUserAssigned($user),
-            'isJobAccepted' => $this->isJobAccepted(),
-            'isAppraisalJobOnHold' => $this->isAppraisalJobOnHold(),
-            'notEnoughCapacity' => $this->notEnoughCapacity($fields, $user),
-        ]);
         if (
             !$this->model
             || !$this->isUserAssigned($user)
@@ -113,7 +117,9 @@ class RespondToAssignment extends Action
             Log::error('error message', ['msg' => $e->getMessage()]);
             return Action::danger('An error occurred while processing your request.');
         }
-
+        if ($fields->response == 'decline' && $this->source == 'detail') {
+            return Action::redirect('/resources/appraisal-jobs/');
+        }
         return Action::message('Response recorded.');
     }
 

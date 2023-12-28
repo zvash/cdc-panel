@@ -28,6 +28,7 @@ use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
@@ -66,11 +67,16 @@ class AppraisalJob extends Resource
      */
     public static $search = [
         'id',
-        'office'
+        'appraisalType.name',
+        'office.city',
+        'property_address',
+        'appraiser.name',
     ];
 
     public static $with = [
         'office',
+        'appraiser',
+        'appraisalType',
     ];
 
     public static function label()
@@ -163,27 +169,28 @@ class AppraisalJob extends Resource
                     return $user->name;
                 }),
 
-            Badge::make('Status')->map([
-                \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
-                \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
-                \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
-                \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
-                \App\Enums\AppraisalJobStatus::Completed->value => 'success',
-                \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
-            ])
-                ->withIcons()
-                ->exceptOnForms(),
+            File::make('File')
+                ->disk('local')
+                ->path('appraisal-job-files')
+                ->required()
+                ->rules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
 
-            Badge::make('On Hold?', 'is_on_hold')
-                ->label(function ($isOnHold) {
-                    return $isOnHold ? 'Yes' : 'No';
-                })->map([
-                    true => 'warning',
-                    false => 'success',
-                ])->withIcons()
-                ->hideFromIndex(function () {
-                    return auth()->user()->hasManagementAccess();
+            Badge::make('Status')->map([
+                    \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
+                    \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
+                    \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
+                    \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
+                    \App\Enums\AppraisalJobStatus::Completed->value => 'success',
+                    \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
+                    'On Hold' => 'warning',
+                ])
+                ->resolveUsing(function ($status) {
+                    if ($this->is_on_hold) {
+                        return 'On Hold';
+                    }
+                    return $status;
                 })
+                ->withIcons()
                 ->exceptOnForms(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
@@ -325,15 +332,14 @@ class AppraisalJob extends Resource
                 ->rules('required')
                 ->displayUsingLabels(),
 
-            Text::make('Postal Code', 'property_postal_code')
-                ->rules('regex:/^[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1} *\d{1}[A-Z]{1}\d{1}$/', 'nullable')
-                ->nullable()
-                ->required()
-                ->hideFromIndex(),
-
             GoogleAutocomplete::make('Address', 'property_address')
                 ->countries('CA')
                 ->required()
+                ->hideFromIndex(),
+
+            Text::make('Postal Code', 'property_postal_code')
+                ->rules('regex:/^[A-Za-z]{1}\d{1}[A-Za-z]{1}[ ]{0,1}\d{1}[A-Za-z]{1}\d{1}$/', 'nullable')
+                ->nullable()
                 ->hideFromIndex(),
         ]);
     }

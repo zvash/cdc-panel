@@ -74,20 +74,15 @@ trait AppraisalJobLensIndex
                 \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
                 \App\Enums\AppraisalJobStatus::Completed->value => 'success',
                 \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
+                'On Hold' => 'warning',
             ])
-                ->withIcons()
-                ->exceptOnForms(),
-
-            Badge::make('On Hold?', 'is_on_hold')
-                ->label(function ($isOnHold) {
-                    return $isOnHold ? 'Yes' : 'No';
-                })->map([
-                    true => 'warning',
-                    false => 'success',
-                ])->withIcons()
-                ->hideFromIndex(function () {
-                    return auth()->user()->hasManagementAccess();
+                ->resolveUsing(function ($status) {
+                    if ($this->is_on_hold) {
+                        return 'On Hold';
+                    }
+                    return $status;
                 })
+                ->withIcons()
                 ->exceptOnForms(),
 
             FieldProgressbar::make('Progress')
