@@ -53,7 +53,7 @@ class AppraisalJobObserver
             $changeLog->update([
                 'duration' => 0,
             ]);
-            $secondLatestLog = $this->getSecondLatestChangeLog($appraisalJob);
+            $secondLatestLog = $this->getLatestValidLogBeforePuttingTheJobOnHold($appraisalJob);
             AppraisalJobChangeLog::query()->create([
                 'appraisal_job_id' => $appraisalJob->id,
                 'user_id' => auth()->user()->id,
@@ -84,12 +84,19 @@ class AppraisalJobObserver
 
     private function getLatestChangeLog(AppraisalJob $appraisalJob)
     {
-        return $appraisalJob->changeLogs()->latest()->first();
+        return $appraisalJob->changeLogs()
+            ->whereNotIn('action', ['accepted', 'declined'])
+            ->latest()->first();
     }
 
-    private function getSecondLatestChangeLog(AppraisalJob $appraisalJob)
+    private function getLatestValidLogBeforePuttingTheJobOnHold(AppraisalJob $appraisalJob)
     {
-        return $appraisalJob->changeLogs()->latest()->skip(1)->first();
+        $putOnHoldId = $appraisalJob->changeLogs()->where('action', 'put on hold')->latest()->first()->id;
+        return $appraisalJob->changeLogs()
+            ->where('id', '<', $putOnHoldId)
+            ->whereNotIn('action', ['accepted', 'declined'])
+            ->latest()
+            ->first();
     }
 
     private function updateLastChangeLog(?AppraisalJobChangeLog $latestLog)
@@ -114,9 +121,9 @@ class AppraisalJobObserver
             }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
-                    return 'accepted';
+                    return 'put in progress';
                 }
-                return 'rejected';
+                return 'rejected after review';
             }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InReview) {
                 return 'submitted for review';

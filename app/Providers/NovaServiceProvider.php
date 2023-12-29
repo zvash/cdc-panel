@@ -12,7 +12,9 @@ use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
+use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Nova\Office;
+use App\Observers\AppraisalJobAssignmentObserver;
 use App\Observers\AppraisalJobObserver;
 use App\Observers\UserObserver;
 use Illuminate\Http\Request;
@@ -40,6 +42,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
         \App\Models\User::observe(UserObserver::class);
         \App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
+        \App\Models\AppraisalJobAssignment::Observe(AppraisalJobAssignmentObserver::class);
 
         Nova::withBreadcrumbs();
 
@@ -68,6 +71,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Need Action', [
                 MenuItem::lens(AppraisalJob::class, NotAssignedAppraisalJobs::class)
+                    ->canSee(function ($request) {
+                        return $request->user()->hasManagementAccess();
+                    }),
+                MenuItem::lens(AppraisalJob::class, RejectedAppraisalJobs::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
                     }),

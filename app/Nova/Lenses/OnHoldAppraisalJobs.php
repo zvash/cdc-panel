@@ -41,7 +41,7 @@ class OnHoldAppraisalJobs extends Lens
      *
      * @var bool
      */
-    public static $showPollingToggle = true;
+    public static $showPollingToggle = false;
 
     /**
      * Get the query builder / paginator for the lens.

@@ -143,20 +143,25 @@ class RespondToAssignment extends Action
         $this->model->assignments()
             ->where('appraiser_id', '<>', $user->id)
             ->where('status', AppraisalJobAssignmentStatus::Pending)
-            ->update([
-                'status' => AppraisalJobAssignmentStatus::Missed
-            ]);
+            ->get()
+            ->each(function ($assignment) {
+                $assignment->setAttribute('status', AppraisalJobAssignmentStatus::Missed)->save();
+            });
     }
 
     private function updateAssignmentStatus($user, $fields)
     {
-        $this->model->assignments()
+        $status = $fields->response == 'accept'
+            ? AppraisalJobAssignmentStatus::Accepted
+            : AppraisalJobAssignmentStatus::Declined;
+        $assignment = $this->model->assignments()
             ->where('appraiser_id', $user->id)
-            ->update([
-                'status' => $fields->response == 'accept'
-                    ? AppraisalJobAssignmentStatus::Accepted
-                    : AppraisalJobAssignmentStatus::Declined
-            ]);
+            ->first();
+        if ($assignment) {
+            $assignment->setAttribute('status', $status)->save();
+        } else {
+            throw new \Exception('Cannot find the assignment.');
+        }
     }
 
     /**

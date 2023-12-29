@@ -2,7 +2,7 @@
 
 namespace App\Nova\Lenses;
 
-use App\Enums\AppraisalJobStatus;
+use App\Enums\AppraisalJobAssignmentStatus;
 use App\Nova\Lenses\Traits\AppraisalJobLensIndex;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
@@ -11,7 +11,7 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
 use Laravel\Nova\Nova;
 
-class InReviewAppraisalJobs extends Lens
+class RejectedAppraisalJobs extends Lens
 {
     use AppraisalJobLensIndex;
 
@@ -53,29 +53,24 @@ class InReviewAppraisalJobs extends Lens
     public static function query(LensRequest $request, $query)
     {
         return $request->withOrdering($request->withFilters(
-            $query->where('status', AppraisalJobStatus::InReview)
-                ->where(function ($query) use ($request) {
-                    $user = $request->user();
-                    if ($user->hasManagementAccess()) {
-                        return $query;
-                    }
-                    return $query->whereHas('appraiser', function ($query) use ($user) {
-                        return $query->whereJsonContains('reviewers', "{$user->id}");
-                    });
-                })
+            $query->whereHas('assignments', function ($query) use ($request) {
+                $query->where('status', AppraisalJobAssignmentStatus::Declined);
+            })->whereDoesntHave('assignments', function ($query) {
+                $query->where('status', AppraisalJobAssignmentStatus::Pending)
+                    ->orWhere('status', AppraisalJobAssignmentStatus::Accepted);
+            })
         ));
     }
 
     public function name()
     {
-        return __("nova.lenses.in_review_appraisal_jobs.name");
+        return __("nova.lenses.rejected_appraisal_jobs.name");
     }
-
 
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -86,7 +81,7 @@ class InReviewAppraisalJobs extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -97,7 +92,7 @@ class InReviewAppraisalJobs extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)
@@ -112,6 +107,6 @@ class InReviewAppraisalJobs extends Lens
      */
     public function uriKey()
     {
-        return 'in-review-appraisal-jobs';
+        return 'rejected-appraisal-jobs';
     }
 }

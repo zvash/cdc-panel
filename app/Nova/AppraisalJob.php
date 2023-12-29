@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use App\Enums\AppraisalJobStatus;
+use App\Models\AppraisalType;
 use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
 use App\Nova\Actions\MarkAsCompleted;
@@ -18,6 +19,7 @@ use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
+use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
@@ -71,6 +73,7 @@ class AppraisalJob extends Resource
         'office.city',
         'property_address',
         'appraiser.name',
+        'reference_number',
     ];
 
     public static $with = [
@@ -92,6 +95,11 @@ class AppraisalJob extends Resource
     public static function updateButtonLabel()
     {
         return 'Update Job';
+    }
+
+    public function authorizedToUpdate(Request $request)
+    {
+        return auth()->user()->hasManagementAccess();
     }
 
     /**
@@ -122,37 +130,62 @@ class AppraisalJob extends Resource
         return $this->panel('Order Information', [
             ID::make()->sortable(),
 
-            BelongsTo::make('Created By', 'createdBy', User::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->displayUsing(function ($user) {
-                    return $user->name;
-                }),
+//            BelongsTo::make('Created By', 'createdBy', User::class)
+//                ->searchable()
+//                ->exceptOnForms()
+//                ->displayUsing(function ($user) {
+//                    return $user->name;
+//                }),
 
             BelongsTo::make('Client')
                 ->searchable()
                 ->withoutTrashed()
                 ->showCreateRelationButton()
+                ->filterable()
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
                 }),
 
-            Stack::make('Address', [
-                Line::make('Property Address')->asHeading(),
-                Line::make('Property Postal Code')->asSmall(),
-                Line::make('Property City')->asSmall(),
-                Line::make('Property Province')->asSmall(),
+            Stack::make('Details', [
+                Line::make('Property Address')
+                    ->displayUsing(function ($value) {
+                        return str_ireplace(', Canada', '', $value);
+                    })->asHeading(),
+                Line::make('Appraisal Type', 'appraisalType.name')
+                    ->displayUsing(function ($value) {
+                        return 'Type: ' . ($value ?? '-');
+                    })->asSmall(),
+                Line::make('File Number', 'reference_number')
+                    ->displayUsing(function ($value) {
+                        return 'File Number: ' . ($value ?? '-');
+                    })->asSmall(),
+                Line::make('Due Date')
+                    ->displayUsing(function ($value) {
+                        return 'Due Date: ' . ($value ?? '-');
+                    })->asSmall(),
             ])->onlyOnIndex(),
 
             Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(\App\Models\AppraisalType::pluck('name', 'id'))
+                ->options(AppraisalType::pluck('name', 'id'))
                 ->searchable()
                 ->required()
+                ->hideFromIndex()
                 ->displayUsingLabels(),
+
+            BelongsTo::make('Appraisal Type', 'appraisalType', \App\Nova\AppraisalType::class)
+                ->searchable()
+                ->exceptOnForms()
+                ->hideFromIndex()
+                ->hideFromDetail()
+                ->filterable()
+                ->displayUsing(function ($appraisalType) {
+                    return $appraisalType->name;
+                }),
 
             BelongsTo::make('Office')
                 ->searchable()
+                ->filterable()
                 ->exceptOnForms(),
 
             Select::make('Office', 'office_id')
@@ -165,6 +198,7 @@ class AppraisalJob extends Resource
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
                 ->exceptOnForms()
+                ->filterable()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -176,14 +210,14 @@ class AppraisalJob extends Resource
                 ->rules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
 
             Badge::make('Status')->map([
-                    \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
-                    \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
-                    \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
-                    \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
-                    \App\Enums\AppraisalJobStatus::Completed->value => 'success',
-                    \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
-                    'On Hold' => 'warning',
-                ])
+                \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
+                \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
+                \App\Enums\AppraisalJobStatus::InProgress->value => 'info',
+                \App\Enums\AppraisalJobStatus::InReview->value => 'warning',
+                \App\Enums\AppraisalJobStatus::Completed->value => 'success',
+                \App\Enums\AppraisalJobStatus::Cancelled->value => 'danger',
+                'On Hold' => 'warning',
+            ])
                 ->resolveUsing(function ($status) {
                     if ($this->is_on_hold) {
                         return 'On Hold';
@@ -207,9 +241,10 @@ class AppraisalJob extends Resource
                     'color' => '#40BF55',
                     'fromColor' => '#FFEA82',
                     'toColor' => '#40BF55',
-                    'animationColor' => false,
+                    'animateColor' => false,
                 ])
-                ->exceptOnForms(),
+                ->exceptOnForms()
+                ->hideFromIndex(),
 
             BelongsTo::make('Reviewer', 'reviewer', User::class)
                 ->searchable()
@@ -230,10 +265,10 @@ class AppraisalJob extends Resource
 //                ->searchable()
 //                ->displayUsingLabels(),
 
-            Text::make('Lender')
+            Text::make('File Number', 'reference_number')
                 ->hideFromIndex(),
 
-            Text::make('Reference Number')
+            Text::make('Lender')
                 ->hideFromIndex(),
 
             Text::make('Applicant')
@@ -246,7 +281,15 @@ class AppraisalJob extends Resource
                 ->creationRules('nullable', 'email'),
 
             Date::make('Due Date')
+                ->hideFromIndex()
                 ->sortable(),
+
+            Date::make('Created At')
+                ->sortable()
+                ->filterable()
+                ->exceptOnForms()
+                ->nullable()
+                ->hideFromIndex(),
         ]);
     }
 
@@ -300,7 +343,7 @@ class AppraisalJob extends Resource
                 ->rules('nullable', 'url')
                 ->displayUsing(function ($value) {
                     return "<a href='$value' target='_blank'>$value</a>";
-                }),
+                })->asHtml(),
         ]);
     }
 
@@ -388,10 +431,7 @@ class AppraisalJob extends Resource
     public function filters(NovaRequest $request)
     {
         return [
-            (new OfficeFilter())
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                }),
+
         ];
     }
 
@@ -406,6 +446,10 @@ class AppraisalJob extends Resource
         return [
             new AssignedAppraisalJobs($this->resource),
             (new NotAssignedAppraisalJobs($this->resource))
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new RejectedAppraisalJobs($this->resource))
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
                 }),

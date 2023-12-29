@@ -35,7 +35,7 @@ class InProgressAppraisalJobs extends Lens
      *
      * @var bool
      */
-    public static $showPollingToggle = true;
+    public static $showPollingToggle = false;
 
     /**
      * The columns that should be searched.

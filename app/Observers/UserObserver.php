@@ -16,4 +16,11 @@ class UserObserver
             $user->email = $user->getOriginal('email');
         }
     }
+
+    public function created(User $user)
+    {
+        $password = substr(md5(rand()), 0, 8);
+        $user->password = bcrypt($password);
+        $user->save();
+    }
 }

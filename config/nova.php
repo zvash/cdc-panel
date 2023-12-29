@@ -122,7 +122,7 @@ return [
     |
     */
 
-    'pagination' => 'simple',
+    'pagination' => 'load-more',
 
     /*
     |--------------------------------------------------------------------------
@@ -163,12 +163,12 @@ return [
     */
 
     'brand' => [
-        'logo' => resource_path('logo/cdclogo.svg'),
+        'logo' => resource_path('logo/cdclogoblack.svg'),
 
         'colors' => [
-            "400" => '#38bdf8',
-            "500" => '#0ea5e9',
-            "600" => '#0c4a6e',
+            "400" => '#6bc5db',
+            "500" => '#38bdf8',
+            "600" => '#003057',
         ]
     ],
 

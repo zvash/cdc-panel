@@ -63,6 +63,24 @@ class AssignAppraiserAction extends Action
                 'assigned_by' => auth()->user()->id,
                 'status' => AppraisalJobAssignmentStatus::Pending
             ])->toArray(), ['appraisal_job_id', 'appraiser_id'], ['status']);
+
+//        $selectedAppraisers->each(function ($appraiserId) {
+//            $assignment = AppraisalJobAssignment::query()
+//                ->where('appraisal_job_id', $this->model->id)
+//                ->where('appraiser_id', $appraiserId)
+//                ->first();
+//            if ($assignment) {
+//                $assignment->setAttribute('status', AppraisalJobAssignmentStatus::Pending)->save();
+//            } else {
+//                AppraisalJobAssignment::query()->create([
+//                    'appraisal_job_id' => $this->model->id,
+//                    'appraiser_id' => $appraiserId,
+//                    'assigned_by' => auth()->user()->id,
+//                    'status' => AppraisalJobAssignmentStatus::Pending
+//                ]);
+//            }
+//        });
+
         $this->model->setAttribute('status', AppraisalJobStatus::Assigned)->save();
         return Action::message("job assignment updated successfully based on your selection.");
     }

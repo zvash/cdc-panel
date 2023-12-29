@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Line;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Stack;
+use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
 
@@ -28,41 +29,68 @@ trait AppraisalJobLensIndex
         return [
             ID::make(Nova::__('ID'), 'id')->sortable(),
 
-            BelongsTo::make('Created By', 'createdBy', User::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->displayUsing(function ($user) {
-                    return $user->name;
-                }),
+//            BelongsTo::make('Created By', 'createdBy', User::class)
+//                ->searchable()
+//                ->exceptOnForms()
+//                ->displayUsing(function ($user) {
+//                    return $user->name;
+//                }),
+
 
             BelongsTo::make('Client')
                 ->searchable()
                 ->showCreateRelationButton()
+                ->filterable()
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
                 }),
 
-            Stack::make('Address', [
-                Line::make('Property Address')->asHeading(),
-                Line::make('Property Postal Code')->asSmall(),
-                Line::make('Property City')->asSmall(),
-                Line::make('Property Province')->asSmall(),
+            Stack::make('Details', [
+                Line::make('Property Address')
+                    ->displayUsing(function ($value) {
+                        return str_ireplace(', Canada', '', $value);
+                    })->asHeading(),
+                Line::make('Appraisal Type', 'appraisalType.name')
+                    ->displayUsing(function ($value) {
+                        return 'Type: ' . ($value ?? '-');
+                    })->asSmall(),
+                Line::make('File Number', 'reference_number')
+                    ->displayUsing(function ($value) {
+                        return 'File Number: ' . ($value ?? '-');
+                    })->asSmall(),
+                Line::make('Due Date')
+                    ->displayUsing(function ($value) {
+                        return 'Due Date: ' . ($value ?? '-');
+                    })->asSmall(),
             ])->onlyOnIndex(),
 
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options(\App\Models\AppraisalType::pluck('name', 'id'))
                 ->searchable()
+                ->hideFromIndex()
                 ->required()
                 ->displayUsingLabels(),
 
+            BelongsTo::make('Appraisal Type', 'appraisalType', \App\Nova\AppraisalType::class)
+                ->searchable()
+                ->exceptOnForms()
+                ->hideFromIndex()
+                ->hideFromDetail()
+                ->filterable()
+                ->displayUsing(function ($appraisalType) {
+                    return $appraisalType->name;
+                }),
+
             BelongsTo::make('Office')
                 ->searchable()
+                ->filterable()
                 ->exceptOnForms(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
                 ->exceptOnForms()
+                ->filterable()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -87,14 +115,16 @@ trait AppraisalJobLensIndex
 
             FieldProgressbar::make('Progress')
                 ->options([
-                    'color' => '#40BF55',
+//                    'color' => '#40BF55',
                     'fromColor' => '#FFEA82',
                     'toColor' => '#40BF55',
-                    'animationColor' => false,
+                    'animateColor' => false,
                 ])
-                ->exceptOnForms(),
+                ->exceptOnForms()
+                ->hideFromIndex(),
 
             Date::make('Due Date')
+                ->hideFromIndex()
                 ->sortable(),
         ];
     }

@@ -88,7 +88,7 @@ class User extends Resource
         return [
             $this->properties(),
             $this->panel('Info', $this->userInformation($request)),
-            $this->panel('Password', $this->password($request)),
+            //$this->panel('Password', $this->password($request)),
             $this->panel('Reviewers', $this->reviewers($request)),
             $this->panel('Preferred Appraisal Types', $this->preferredAppraisalJobTypes()),
             $this->panel('Relations', $this->relations()),
@@ -165,7 +165,7 @@ class User extends Resource
                 ->nullable(),
 
             MultiSelect::make('Reviewers', 'reviewers')
-                ->placeholder('Select appraisers that can review appraisal jobs')
+                ->placeholder(' ')
                 ->saveAsJSON()
                 ->options(\App\Models\User::query()
                     ->whereHas('roles', function ($query) {
@@ -184,6 +184,7 @@ class User extends Resource
                         && !$request->user()->isSuperAdmin()
                         && !$request->user()->isAdmin();
                 })
+                ->max(1)
                 ->hideFromIndex(),
 
             Text::make('Pin')
@@ -264,23 +265,23 @@ class User extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new InviteUserAction())
-                ->setInviter($request->user())
-                ->confirmText(__('nova.actions.invite_user.confirm_text'))
-                ->confirmButtonText(__('nova.actions.invite_user.confirm_button'))
-                ->cancelButtonText(__('nova.actions.invite_user.cancel_button'))
-                ->standalone()
-                ->showAsButton()
-                ->canSee(function () use ($request) {
-                    return $request->user()->isSupervisor()
-                        || $request->user()->isSuperAdmin()
-                        || $request->user()->isAdmin();
-                })
-                ->canRun(function () use ($request) {
-                    return $request->user()->isSupervisor()
-                        || $request->user()->isSuperAdmin()
-                        || $request->user()->isAdmin();
-                }),
+//            (new InviteUserAction())
+//                ->setInviter($request->user())
+//                ->confirmText(__('nova.actions.invite_user.confirm_text'))
+//                ->confirmButtonText(__('nova.actions.invite_user.confirm_button'))
+//                ->cancelButtonText(__('nova.actions.invite_user.cancel_button'))
+//                ->standalone()
+//                ->showAsButton()
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->isSupervisor()
+//                        || $request->user()->isSuperAdmin()
+//                        || $request->user()->isAdmin();
+//                })
+//                ->canRun(function () use ($request) {
+//                    return $request->user()->isSupervisor()
+//                        || $request->user()->isSuperAdmin()
+//                        || $request->user()->isAdmin();
+//                }),
         ];
     }
 
