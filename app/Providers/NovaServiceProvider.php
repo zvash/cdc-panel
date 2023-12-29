@@ -94,7 +94,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Accounts', [
                 MenuItem::resource(\App\Nova\User::class),
-                MenuItem::resource(Invitation::class),
+                MenuItem::resource(\App\Nova\ProvinceTax::class),
             ])->icon('cog'),
         ]);
 
