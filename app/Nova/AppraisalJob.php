@@ -13,13 +13,16 @@ use App\Nova\Actions\RejectAfterReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
 use App\Nova\Filters\OfficeFilter;
+use App\Nova\Lenses\AppraiserInvoice;
 use App\Nova\Lenses\AssignedAppraisalJobs;
+use App\Nova\Lenses\ClientInvoice;
 use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
+use App\Nova\Lenses\ReviewerInvoice;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
@@ -207,7 +210,8 @@ class AppraisalJob extends Resource
                 ->disk('local')
                 ->path('appraisal-job-files')
                 ->required()
-                ->rules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
+                ->creationRules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp')
+                ->updateRules('nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
 
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
@@ -444,7 +448,7 @@ class AppraisalJob extends Resource
     public function lenses(NovaRequest $request)
     {
         return [
-            new AssignedAppraisalJobs($this->resource),
+            (new AssignedAppraisalJobs($this->resource)),
             (new NotAssignedAppraisalJobs($this->resource))
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
@@ -457,6 +461,9 @@ class AppraisalJob extends Resource
             (new InReviewAppraisalJobs($this->resource)),
             (new OnHoldAppraisalJobs($this->resource)),
             (new CompletedAppraisalJobs($this->resource)),
+            (new AppraiserInvoice($this->resource)),
+            (new ReviewerInvoice($this->resource)),
+            (new ClientInvoice($this->resource)),
         ];
     }
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "89d9f6a9b003b2d5bde113ba3e47f5f0",
+    "content-hash": "255cdcc5a1f2f013536fdfd8e5263a6c",
     "packages": [
         {
             "name": "brandonjbegle/nova4-google-autocomplete-field",
@@ -2871,6 +2871,61 @@
                 }
             ],
             "time": "2023-10-17T14:13:20+00:00"
+        },
+        {
+            "name": "lupennat/nova-better-lens",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Lupennat/nova-better-lens.git",
+                "reference": "0bff44546bbf3e3f781aef7a193df57e449d3b95"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Lupennat/nova-better-lens/zipball/0bff44546bbf3e3f781aef7a193df57e449d3b95",
+                "reference": "0bff44546bbf3e3f781aef7a193df57e449d3b95",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": ">=4.22.2 <=4.29.5",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.16"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lupennat\\BetterLens\\BetterLensServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lupennat\\BetterLens\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Claudio Pennati",
+                    "email": "claudio.pennati@gmail.com"
+                }
+            ],
+            "description": "Laravel Nova - Better Lens",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/Lupennat/nova-better-lens/issues",
+                "source": "https://github.com/Lupennat/nova-better-lens/tree/v1.3.0"
+            },
+            "time": "2023-12-09T19:33:52+00:00"
         },
         {
             "name": "monolog/monolog",

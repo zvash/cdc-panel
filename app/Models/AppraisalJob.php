@@ -12,6 +12,7 @@ class AppraisalJob extends Model
 
     protected $casts = [
         'due_date' => 'date',
+        'completed_at' => 'datetime',
     ];
 
     protected $appends = [

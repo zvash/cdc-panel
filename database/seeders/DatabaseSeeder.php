@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             ClientTypeSeeder::class,
             AppraisalTypeSeeder::class,
+            ProvinceTaxSeeder::class,
             WebPermissionSeeder::class,
         ]);
     }

@@ -1,0 +1,106 @@
+[
+    {
+        "id" : 1,
+        "province_id" : 1,
+        "pst": 0,
+        "gst": 5,
+        "hst": 0,
+        "total": 5
+    },
+{
+        "id" : 2,
+        "province_id" : 2,
+        "pst": 7,
+        "gst": 5,
+        "hst": 0,
+        "total": 12
+    },
+    {
+        "id" : 3,
+        "province_id" : 3,
+        "pst": 7,
+        "gst": 5,
+        "hst": 0,
+        "total": 12
+    },
+    {
+        "id" : 4,
+        "province_id" : 4,
+        "pst": 0,
+        "gst": 0,
+        "hst": 15,
+        "total": 15
+    },
+    {
+        "id" : 5,
+        "province_id" : 5,
+        "pst": 0,
+        "gst": 0,
+        "hst": 15,
+        "total": 15
+    },
+    {
+        "id" : 6,
+        "province_id" : 6,
+        "pst": 0,
+        "gst": 5,
+        "hst": 0,
+        "total": 5
+    },
+    {
+        "id" : 7,
+        "province_id" : 7,
+        "pst": 0,
+        "gst": 0,
+        "hst": 15,
+        "total": 15
+    },
+    {
+        "id" : 8,
+        "province_id" : 8,
+        "pst": 0,
+        "gst": 5,
+        "hst": 0,
+        "total": 5
+    },
+    {
+        "id" : 9,
+        "province_id" : 9,
+        "pst": 0,
+        "gst": 0,
+        "hst": 15,
+        "total": 15
+    },
+    {
+        "id" : 10,
+        "province_id" : 10,
+        "pst": 6,
+        "gst": 5,
+        "hst": 0,
+        "total": 11
+    },
+    {
+        "id" : 11,
+        "province_id" : 11,
+        "pst": 0,
+        "gst": 0,
+        "hst": 13,
+        "total": 13
+    },
+    {
+        "id" : 12,
+        "province_id" : 12,
+        "pst": "9.975",
+        "gst": 5,
+        "hst": 0,
+        "total": "14.975"
+    },
+    {
+        "id" : 13,
+        "province_id" : 13,
+        "pst": 0,
+        "gst": 5,
+        "hst": 0,
+        "total": 5
+    }
+]

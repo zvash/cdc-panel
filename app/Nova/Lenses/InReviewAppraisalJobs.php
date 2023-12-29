@@ -10,10 +10,11 @@ use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
 use Laravel\Nova\Nova;
+use Lupennat\BetterLens\BetterLens;
 
 class InReviewAppraisalJobs extends Lens
 {
-    use AppraisalJobLensIndex;
+    use AppraisalJobLensIndex, BetterLens;
 
     /**
      * Indicates whether the lens should automatically poll for new records.
