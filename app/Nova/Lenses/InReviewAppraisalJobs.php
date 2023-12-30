@@ -42,7 +42,28 @@ class InReviewAppraisalJobs extends Lens
      *
      * @var array
      */
-    public static $search = [];
+    /**
+     * The columns that should be searched.
+     *
+     * @var array
+     */
+    public static $search = [
+        'id',
+        'appraisalType.name',
+        'office.city',
+        'property_address',
+        'appraiser.name',
+        'reference_number',
+    ];
+
+    public static function withRelated()
+    {
+        return [
+            'appraisalType',
+            'office',
+            'appraiser',
+        ];
+    }
 
     /**
      * Get the query builder / paginator for the lens.
