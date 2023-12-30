@@ -56,7 +56,7 @@ class ProvinceTax extends Resource
 
     public static function authorizedToCreate(Request $request)
     {
-        return return auth()->user() && auth()->user()->hasManagementAccess();
+        return auth()->user() && auth()->user()->hasManagementAccess();
     }
 
     public static function label()
