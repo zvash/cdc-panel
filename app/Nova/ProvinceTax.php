@@ -51,12 +51,12 @@ class ProvinceTax extends Resource
 
     public function authorizedToUpdate(Request $request)
     {
-        return auth()->user()->hasManagementAccess();
+        return auth()->user() && auth()->user()->hasManagementAccess();
     }
 
     public static function authorizedToCreate(Request $request)
     {
-        return auth()->user()->hasManagementAccess();
+        return return auth()->user() && auth()->user()->hasManagementAccess();
     }
 
     public static function label()
