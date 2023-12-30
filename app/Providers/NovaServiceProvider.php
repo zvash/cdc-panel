@@ -53,13 +53,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         });
 
         Nova::mainMenu(fn($request) => [
-            MenuSection::make('Clients', [
-                MenuItem::resource(Client::class),
-            ])->icon('user-group'),
-
-            MenuSection::make('Offices', [
-                MenuItem::resource(Office::class),
-            ])->icon('office-building'),
 
             MenuSection::make('Appraisal Jobs', [
                 MenuItem::resource(AppraisalJob::class),
@@ -85,17 +78,25 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Invoices', [
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\AppraiserInvoice::class),
-                MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ReviewerInvoice::class),
+                //MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ReviewerInvoice::class),
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientInvoice::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
                     }),
             ])->icon('currency-dollar'),
 
-            MenuSection::make('Accounts', [
+            MenuSection::make('Settings', [
                 MenuItem::resource(\App\Nova\User::class),
                 MenuItem::resource(\App\Nova\ProvinceTax::class),
             ])->icon('cog'),
+
+            MenuSection::make('Clients', [
+                MenuItem::resource(Client::class),
+            ])->icon('user-group'),
+
+            MenuSection::make('Offices', [
+                MenuItem::resource(Office::class),
+            ])->icon('office-building'),
         ]);
 
         Nova::footer(function ($request) {

@@ -6,9 +6,12 @@ use App\Nova\Actions\InviteUserAction;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Avatar;
 use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\FormData;
+use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\MorphToMany;
 use Laravel\Nova\Fields\Number;
@@ -122,13 +125,23 @@ class User extends Resource
                 ->readonly(function (NovaRequest $request) {
                     return !$request->user()->isSuperAdmin() && !$request->user()->isSupervisor();
                 })
+                ->displayUsing(function ($value) {
+                    return Str::limit($value, 50, '...');
+                })
                 ->creationRules('unique:users,email')
                 ->updateRules('unique:users,email,{{resourceId}}'),
+
+            Text::make('Capacity')
+                ->onlyOnIndex()
+                ->displayUsing(function ($value) {
+                    return $value . '';
+                }),
 
             Number::make('Capacity')
                 ->min(0)
                 ->max(50)
                 ->default(10)
+                ->hideFromIndex()
                 ->required(),
         ]);
     }
@@ -336,9 +349,8 @@ class User extends Resource
     {
         return array_merge([
 
-            MorphToMany::make('Roles')
+            BelongsToMany::make('Roles')
                 ->required()
-                ->searchable()
                 ->withSubtitles(),
         ]);
     }

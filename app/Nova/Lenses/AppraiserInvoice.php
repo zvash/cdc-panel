@@ -2,7 +2,11 @@
 
 namespace App\Nova\Lenses;
 
+use App\Models\AppraisalJob;
 use App\Nova\User;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
@@ -73,46 +77,89 @@ class AppraiserInvoice extends Lens
      */
     public static function query(LensRequest $request, $query)
     {
+        $rawQueryAsString = "
+            SELECT
+                appraisal_jobs.id,
+                appraisal_jobs.client_id,
+                appraisal_jobs.office_id,
+                appraisal_jobs.property_address,
+                appraisal_jobs.created_at,
+                appraisal_jobs.reference_number,
+                appraisal_jobs.fee_quoted,
+                appraisal_jobs.payment_terms,
+                appraisal_jobs.completed_at,
+                appraiser_id,
+                'Appraiser' AS user_type,
+                CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
+                users.commission,
+                province_taxes.total as province_tax
+            FROM
+                appraisal_jobs
+            INNER JOIN
+                users
+            ON
+                users.id = appraiser_id
+            INNER JOIN
+                provinces
+            ON
+                provinces.name = appraisal_jobs.province
+            INNER JOIN
+                province_taxes
+            ON
+                province_taxes.province_id = provinces.id
+            WHERE
+                completed_at IS NOT NULL
+            AND
+                fee_quoted IS NOT NULL
+            AND
+                province IS NOT NULL
+            AND
+                appraiser_id IS NOT NULL
+            AND
+                (appraiser_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
+            UNION
+            SELECT
+                appraisal_jobs.id,
+                appraisal_jobs.client_id,
+                appraisal_jobs.office_id,
+                appraisal_jobs.property_address,
+                appraisal_jobs.created_at,
+                appraisal_jobs.reference_number,
+                appraisal_jobs.fee_quoted,
+                appraisal_jobs.payment_terms,
+                appraisal_jobs.completed_at,
+                reviewer_id,
+                'Reviewer' AS user_type,
+                CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
+                users.reviewer_commission AS commission,
+                province_taxes.total AS province_tax
+            FROM
+                appraisal_jobs
+            INNER JOIN
+                users
+            ON
+                users.id = reviewer_id
+            INNER JOIN
+                provinces
+            ON
+                provinces.name = appraisal_jobs.province
+            INNER JOIN
+                province_taxes
+            ON
+                province_taxes.province_id = provinces.id
+            WHERE
+                completed_at IS NOT NULL
+            AND
+                fee_quoted IS NOT NULL
+            AND
+                province IS NOT NULL
+            AND
+                reviewer_id IS NOT NULL
+            AND
+                (reviewer_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
+        ";
         return $request->withOrdering($request->withFilters(
-            $query->fromSub(fn($query) => /**
-             * @var \Illuminate\Database\Query\Builder $query
-             */
-            $query
-                ->from('appraisal_jobs')
-                ->select([
-                    'id',
-                    'appraiser_id',
-                    'client_id',
-                    'office_id',
-                    'property_address',
-                    'created_at',
-                    'reference_number',
-                    'fee_quoted',
-                    'payment_terms',
-                    'completed_at',
-                ])
-                ->addSelect([
-                    'invoice_number' => fn($query) => $query->selectRaw('CONCAT("INV-", YEAR(completed_at), "-", MONTH(completed_at))'),
-                    'appraiser_commission' => fn($query) => $query->select('commission')
-                        ->from('users')
-                        ->whereColumn('users.id', 'appraisal_jobs.appraiser_id'),
-                    'province_tax' => fn($query) => $query->select('total')
-                        ->from('provinces')
-                        ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
-                        ->whereColumn('provinces.name', 'appraisal_jobs.province'),
-                ])
-                ->whereNotNull('completed_at')
-                ->whereNotNull('fee_quoted')
-                ->whereNotNull('province')
-                ->where(function ($query) {
-                    if (auth()->user()->hasManagementAccess()) {
-                        return $query;
-                    } else {
-                        return $query->where('appraiser_id', auth()->user()->id);
-                    }
-                })
-                , 'appraisal_jobs'
-            )
+            $query->fromSub($rawQueryAsString, 'appraisal_jobs')->orderBy('completed_at', 'desc')
         ));
     }
 
@@ -133,6 +180,13 @@ class AppraiserInvoice extends Lens
                 })
                 ->searchable()
                 ->sortable(),
+            Badge::make('Appraiser Role', 'user_type')
+                ->map([
+                    'Appraiser' => 'info',
+                    'Reviewer' => 'warning',
+                ])
+                ->filterable()
+                ->sortable(),
             BelongsTo::make('Office')
                 ->filterable()
                 ->searchable()
@@ -152,18 +206,18 @@ class AppraiserInvoice extends Lens
             Text::make('CDC Total', 'fee_quoted')
                 ->resolveUsing(fn($value) => '$' . round($value * $this->province_tax / 100 + $value, 2))
                 ->sortable(),
-            Text::make('Appraiser Commission', 'appraiser_commission')
+            Text::make('Appraiser Commission', 'commission')
                 ->displayUsing(fn($value) => ($value ?? 0) . '%')
                 ->sortable(),
             Text::make('Appraiser Fee', 'fee_quoted')
-                ->resolveUsing(fn($value) => '$' . round($value * ($this->appraiser_commission ?? 0) / 100, 2))
+                ->resolveUsing(fn($value) => '$' . round($value * ($this->commission ?? 0) / 100, 2))
                 ->sortable(),
             Text::make('Appraiser GST', 'province_tax')
-                ->resolveUsing(fn($value) => '$' . round(($value * ($this->appraiser_commission ?? 0) * $this->fee_quoted / 100 / 100), 2))
+                ->resolveUsing(fn($value) => '$' . round(($value * ($this->commission ?? 0) * $this->fee_quoted / 100 / 100), 2))
                 ->sortable(),
             Text::make('Appraiser Total', 'fee_quoted')
                 ->resolveUsing(function ($value) {
-                    return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->appraiser_commission ?? 0) / 100), 2);
+                    return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->commission ?? 0) / 100), 2);
                 })
                 ->sortable(),
         ];

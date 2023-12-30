@@ -8,6 +8,10 @@ class UserObserver
 {
     public function saving(User $user)
     {
+        if (!$user->id) {
+            $password = substr(md5(rand()), 0, 8);
+            $user->password = bcrypt($password);
+        }
         if (
             $user->isDirty('email')
             && $user->getOriginal('email')
@@ -15,12 +19,5 @@ class UserObserver
             && !auth()->user()->isSupervisor()) {
             $user->email = $user->getOriginal('email');
         }
-    }
-
-    public function created(User $user)
-    {
-        $password = substr(md5(rand()), 0, 8);
-        $user->password = bcrypt($password);
-        $user->save();
     }
 }

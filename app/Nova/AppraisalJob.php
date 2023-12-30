@@ -142,6 +142,9 @@ class AppraisalJob extends Resource
 
             BelongsTo::make('Client')
                 ->searchable()
+                ->default(function ($request) {
+                    return \App\Models\Client::query()->pluck('name', 'id')->toArray();
+                })
                 ->withoutTrashed()
                 ->showCreateRelationButton()
                 ->filterable()

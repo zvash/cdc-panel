@@ -17,17 +17,11 @@ class AppraisalJobAssignmentObserver
     public function saving(AppraisalJobAssignment $appraisalJobAssignment)
     {
         $user = auth()->user();
-        Log::info('Before saving appraisal job assignment', [
-            'appraisal_job_assignment' => $appraisalJobAssignment->toArray(),
-        ]);
         if (
             $user->id == $appraisalJobAssignment->appraiser_id
             && $appraisalJobAssignment->isDirty('status')
             && $appraisalJobAssignment->getOriginal('status') == AppraisalJobAssignmentStatus::Pending->value
         ) {
-            Log::info('Saving appraisal job assignment', [
-                'appraisal_job_assignment' => $appraisalJobAssignment->toArray(),
-            ]);
             DB::beginTransaction();
             try {
                 $this->handleChangeLog($appraisalJobAssignment);
