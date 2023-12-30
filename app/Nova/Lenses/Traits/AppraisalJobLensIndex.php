@@ -58,7 +58,8 @@ trait AppraisalJobLensIndex
                 Line::make('File Number', 'reference_number')
                     ->displayUsing(function ($value) {
                         return 'File Number: ' . ($value ?? '-');
-                    })->asSmall(),
+                    })->filterable()
+                    ->asSmall(),
                 Line::make('Due Date')
                     ->displayUsing(function ($value) {
                         return 'Due Date: ' . ($value ?? '-');
