@@ -2,40 +2,30 @@
 
 namespace App\Nova\Lenses;
 
-use App\Nova\User;
+use App\Nova\Client;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
-use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
+use Laravel\Nova\Nova;
 use Lupennat\BetterLens\BetterLens;
 
-class ClientInvoice extends Lens
+class ClientMonthlyInvoice extends Lens
 {
     use BetterLens;
 
-    /**
-     * The columns that should be searched.
-     *
-     * @var array
-     */
     public static $search = [
         'invoice_number',
-        'reference_number',
-        'property_address',
         'client.name',
-        'office.city',
-        'appraiser.name',
     ];
 
     public static function withRelated()
     {
         return [
             'client',
-            'office',
-            'appraiser',
         ];
     }
 
@@ -61,14 +51,14 @@ class ClientInvoice extends Lens
 
     public function name()
     {
-        return 'Clients Invoices';
+        return 'Clients Monthly Invoices';
     }
 
     /**
      * Get the query builder / paginator for the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\LensRequest $request
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Laravel\Nova\Http\Requests\LensRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return mixed
      */
     public static function query(LensRequest $request, $query)
@@ -81,14 +71,8 @@ class ClientInvoice extends Lens
                 ->from('appraisal_jobs')
                 ->select([
                     'id',
-                    'appraiser_id',
                     'client_id',
-                    'office_id',
-                    'property_address',
-                    'created_at',
-                    'reference_number',
                     'fee_quoted',
-                    'payment_terms',
                     'completed_at',
                 ])
                 ->addSelect([
@@ -97,6 +81,8 @@ class ClientInvoice extends Lens
                         ->from('provinces')
                         ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
                         ->whereColumn('provinces.name', 'appraisal_jobs.province'),
+                    'cdc_fee_with_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100 + fee_quoted'),
+                    'cdc_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100'),
                 ])
                 ->whereNotNull('completed_at')
                 ->whereNotNull('fee_quoted')
@@ -109,53 +95,38 @@ class ClientInvoice extends Lens
                     }
                 })
                 , 'appraisal_jobs'
-            )
+            )->select('invoice_number', 'client_id',)
+            ->selectRaw('SUM(fee_quoted) AS fee_quoted, SUM(cdc_fee_with_tax) AS cdc_fee_with_tax, SUM(cdc_tax) AS cdc_tax')
+            ->groupBy('invoice_number', 'client_id')
+            ->orderBy('invoice_number', 'desc')
         ));
     }
 
     /**
      * Get the fields available to the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function fields(NovaRequest $request)
     {
         return [
-            Text::make('Invoice Number', 'invoice_number')->sortable(),
-            Text::make('File Number', 'reference_number')->sortable(),
-            BelongsTo::make('Appraiser', 'appraiser', User::class)
-                ->filterable(function () {
-                    return auth()->user()->hasManagementAccess();
-                })
-                ->searchable()
-                ->sortable(),
-            BelongsTo::make('Office')
+            Text::make('Invoice Number', 'invoice_number')
                 ->filterable()
-                ->searchable()
                 ->sortable(),
-            BelongsTo::make('Client')
-                ->filterable()
-                ->searchable()
-                ->sortable(),
-            Text::make('Property Address')->sortable(),
-            Date::make('Completed At')
+            BelongsTo::make('Client', 'client', Client::class)
                 ->filterable()
                 ->sortable(),
             Currency::make('CDC Fee', 'fee_quoted')->sortable(),
-            Text::make('CDC GST', 'province_tax')
-                ->resolveUsing(fn($value) => '$' . round($value * $this->fee_quoted / 100, 2))
-                ->sortable(),
-            Text::make('CDC Total', 'fee_quoted')
-                ->resolveUsing(fn($value) => '$' . round($value * $this->province_tax / 100 + $value, 2))
-                ->sortable(),
+            Currency::make('CDC Tax', 'cdc_tax')->sortable(),
+            Currency::make('CDC Total', 'cdc_fee_with_tax')->sortable(),
         ];
     }
 
     /**
      * Get the cards available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -166,7 +137,7 @@ class ClientInvoice extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -177,7 +148,7 @@ class ClientInvoice extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @return array
      */
     public function actions(NovaRequest $request)
@@ -192,6 +163,6 @@ class ClientInvoice extends Lens
      */
     public function uriKey()
     {
-        return 'client-invoice';
+        return 'client-monthly-invoice';
     }
 }

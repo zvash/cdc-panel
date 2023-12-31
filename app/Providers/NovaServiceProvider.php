@@ -83,6 +83,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
                     }),
+                MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientMonthlyInvoice::class)
+                    ->canSee(function ($request) {
+                        return $request->user()->hasManagementAccess();
+                    }),
             ])->icon('currency-dollar'),
 
             MenuSection::make('Settings', [

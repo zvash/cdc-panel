@@ -56,7 +56,7 @@ class AppraiserMonthlyInvoice extends Lens
 
     public function name()
     {
-        return 'Appraiser Monthly Invoices';
+        return 'Appraisers Monthly Invoices';
     }
 
     /**
@@ -152,7 +152,7 @@ class AppraiserMonthlyInvoice extends Lens
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')
                 ->select('invoice_number', 'appraiser_id',)
-                ->selectRaw('SUM(fee_quoted) as fee_quoted, SUM(cdc_fee_with_tax) as cdc_fee_with_tax, SUM(cdc_tax) as cdc_tax, SUM(appraiser_fee) as appraiser_fee, SUM(appraiser_fee_with_tax) as appraiser_fee_with_tax, SUM(appraiser_tax) as appraiser_tax')
+                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fee) AS DECIMAL(10,2)) as appraiser_fee, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
                 ->groupBy('invoice_number', 'appraiser_id')
                 ->orderBy('invoice_number', 'desc')
         ));

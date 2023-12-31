@@ -65,7 +65,7 @@ class AppraiserInvoice extends Lens
 
     public function name()
     {
-        return 'Appraiser Invoices';
+        return 'Appraisers Invoices';
     }
 
     /**
@@ -189,11 +189,9 @@ class AppraiserInvoice extends Lens
                 ->sortable(),
             BelongsTo::make('Office')
                 ->filterable()
-                ->searchable()
                 ->sortable(),
             BelongsTo::make('Client')
                 ->filterable()
-                ->searchable()
                 ->sortable(),
             Text::make('Property Address')->sortable(),
             Date::make('Completed At')
