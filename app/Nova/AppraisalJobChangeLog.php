@@ -37,6 +37,11 @@ class AppraisalJobChangeLog extends Resource
         'action',
     ];
 
+    public static function label()
+    {
+        return 'Log History';
+    }
+
     public static function authorizedToCreate(Request $request)
     {
         return false;
