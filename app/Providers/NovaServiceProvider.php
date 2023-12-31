@@ -78,7 +78,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Invoices', [
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\AppraiserInvoice::class),
-                //MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ReviewerInvoice::class),
+                MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\AppraiserMonthlyInvoice::class),
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientInvoice::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();

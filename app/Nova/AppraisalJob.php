@@ -14,6 +14,7 @@ use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\Lenses\AppraiserInvoice;
+use App\Nova\Lenses\AppraiserMonthlyInvoice;
 use App\Nova\Lenses\AssignedAppraisalJobs;
 use App\Nova\Lenses\ClientInvoice;
 use App\Nova\Lenses\CompletedAppraisalJobs;
@@ -469,6 +470,7 @@ class AppraisalJob extends Resource
             (new AppraiserInvoice($this->resource)),
             (new ReviewerInvoice($this->resource)),
             (new ClientInvoice($this->resource)),
+            (new AppraiserMonthlyInvoice($this->resource)),
         ];
     }
 
