@@ -192,11 +192,11 @@ class User extends Resource
                         $field->options([]);
                     }
                 })
-                ->hideWhenUpdating(function (NovaRequest $request) {
-                    return !$request->user()->isSupervisor()
-                        && !$request->user()->isSuperAdmin()
-                        && !$request->user()->isAdmin();
-                })
+//                ->hideWhenUpdating(function (NovaRequest $request) {
+//                    return !$request->user()->isSupervisor()
+//                        && !$request->user()->isSuperAdmin()
+//                        && !$request->user()->isAdmin();
+//                })
                 ->max(1)
                 ->hideFromIndex(),
 

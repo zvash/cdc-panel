@@ -212,6 +212,28 @@ class AppraisalJob extends Resource
                     return $user->name;
                 }),
 
+            Text::make('Reviewer', 'appraiser_id')
+                ->exceptOnForms()
+                ->displayUsing(function ($value) {
+                    if (!$value) {
+                        return '-';
+                    }
+                    $reviewer = null;
+                    if ($this->reviewer_id) {
+                        $reviewer = \App\Models\User::query()->find($this->reviewer_id);
+
+                    } else {
+                        $reviewers = \App\Models\User::query()->find($value)->reviewers;
+                        if ($reviewers && count($reviewers) > 0) {
+                            $reviewer = \App\Models\User::query()->find($reviewers[0]);
+                        }
+                    }
+                    if ($reviewer) {
+                        return "<a href='/resources/users/{$reviewer->id}' class='link-default'>{$reviewer->name}</a>";
+                    }
+                    return '-';
+                })->asHtml(),
+
             File::make('File')
                 ->disk('local')
                 ->path('appraisal-job-files')
@@ -256,14 +278,14 @@ class AppraisalJob extends Resource
                 ->exceptOnForms()
                 ->hideFromIndex(),
 
-            BelongsTo::make('Reviewer', 'reviewer', User::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->nullable()
-                ->hideFromIndex()
-                ->displayUsing(function ($user) {
-                    return $user->name;
-                }),
+//            BelongsTo::make('Reviewer', 'reviewer', User::class)
+//                ->searchable()
+//                ->exceptOnForms()
+//                ->nullable()
+//                ->hideFromIndex()
+//                ->displayUsing(function ($user) {
+//                    return $user->name;
+//                }),
 
 //            Select::make('Reviewer', 'reviewer_id')
 //                ->options(\App\Models\User::whereHas('roles', function ($roles) {

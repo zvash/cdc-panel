@@ -20,7 +20,7 @@ class PutJobInReview extends Action
 
     public function name()
     {
-        return 'Review';
+        return 'Submit to Reviewer';
     }
 
     /**
