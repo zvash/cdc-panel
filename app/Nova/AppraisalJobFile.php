@@ -41,7 +41,20 @@ class AppraisalJobFile extends Resource
 
     public function authorizedToDelete(Request $request)
     {
-        return false;
+        $user = $request->user();
+        if (!$user) {
+            return false;
+        }
+        return $user->hasManagementAccess()
+            || $user->id = $this->user_id
+                || (
+                    $this->appraisalJob->appraiser_id
+                    && \App\Models\User::query()
+                        ->where('id', $this->appraisalJob->appraiser_id)
+                        ->whereJsonContains('reviewers', "{$user->id}")
+                        ->exists()
+                );
+
     }
 
     public function authorizedToUpdate(Request $request)

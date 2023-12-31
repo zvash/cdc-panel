@@ -585,10 +585,12 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.add_file.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                        || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 })
                 ->canRun(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                        || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 }),
             (new MarkAsCompleted())
                 ->exceptOnIndex()
@@ -671,6 +673,27 @@ class AppraisalJob extends Resource
             && !$this->resource->is_on_hold
             && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
             && $this->resource->appraiser_id == $user->id;
+    }
+
+    private function userIsTheJobsReviewerAndJobIsInReview(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->status == \App\Enums\AppraisalJobStatus::InReview->value
+            && (
+                $this->resource->reviewer_id == $user->id
+                || (
+                    $this->resource->appraiser_id
+                    && \App\Models\User::query()
+                        ->where('id', $this->resource->appraiser_id)
+                        ->whereJsonContains('reviewers', "{$user->id}")
+                        ->exists()
+                )
+            );
     }
 
     /**
