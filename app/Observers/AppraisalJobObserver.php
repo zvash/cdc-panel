@@ -119,6 +119,11 @@ class AppraisalJobObserver
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Assigned) {
                 return 'assigned';
             }
+            if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Pending) {
+                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
+                    return 'sent back to pending when rejected';
+                }
+            }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'put in progress';

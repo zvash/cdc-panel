@@ -166,9 +166,9 @@ return [
         'logo' => resource_path('logo/cdclogoblack.svg'),
 
         'colors' => [
-            "400" => '#6bc5db',
-            "500" => '#38bdf8',
-            "600" => '#003057',
+            "400" => '#38bdf8',
+            "500" => '#003057',
+            "600" => '#6bc5db',
         ]
     ],
 

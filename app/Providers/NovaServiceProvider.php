@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Enums\AppraisalJobAssignmentStatus;
+use App\Enums\AppraisalJobStatus;
+use App\Models\AppraisalJobAssignment;
 use App\Nova\AppraisalJob;
 use App\Models\User;
 use App\Nova\Client;
@@ -36,13 +39,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         parent::boot();
 
-        Nova::userTimezone(function (Request $request) {
-            return $request->user()?->timezone;
-        });
-
         \App\Models\User::observe(UserObserver::class);
         \App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
         \App\Models\AppraisalJobAssignment::Observe(AppraisalJobAssignmentObserver::class);
+
+        Nova::withoutThemeSwitcher();
 
         Nova::withBreadcrumbs();
 
@@ -56,7 +57,21 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             MenuSection::make('Appraisal Jobs', [
                 MenuItem::resource(AppraisalJob::class),
-                MenuItem::lens(AppraisalJob::class, AssignedAppraisalJobs::class),
+                MenuItem::lens(AppraisalJob::class, AssignedAppraisalJobs::class)
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Assigned)->count();
+                        }
+                        return \App\Models\AppraisalJob::query()
+                            ->where('status', AppraisalJobStatus::Assigned)
+                            ->whereHas('assignments', function ($query) use ($request) {
+                                $query->where('appraiser_id', $request->user()->id)
+                                    ->where('status', AppraisalJobAssignmentStatus::Pending);
+                            })->count();
+                    }),
                 MenuItem::lens(AppraisalJob::class, InProgressAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, CompletedAppraisalJobs::class),
 
@@ -66,13 +81,66 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                 MenuItem::lens(AppraisalJob::class, NotAssignedAppraisalJobs::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
+                    })
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Pending)->count();
                     }),
                 MenuItem::lens(AppraisalJob::class, RejectedAppraisalJobs::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
-                    }),
-                MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class),
-                MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class),
+                    })
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::query()
+                                ->where('status', AppraisalJobStatus::InProgress)
+                                ->whereNotNull('reviewer_id')
+                                ->count();
+                        }
+                        return \App\Models\AppraisalJob::query()
+                            ->where('status', AppraisalJobStatus::InProgress)
+                            ->whereNotNull('reviewer_id')
+                            ->where('appraiser_id', $request->user()->id)
+                            ->count();
+                    }, 'danger'),
+                MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class)
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::query()
+                                ->where('status', AppraisalJobStatus::InReview)
+                                ->count();
+                        }
+                        $user = $request->user();
+                        return \App\Models\AppraisalJob::query()
+                            ->where('status', AppraisalJobStatus::InReview)
+                            ->whereHas('appraiser', function ($query) use ($user) {
+                                return $query->whereJsonContains('reviewers', "{$user->id}");
+                            })->count();
+                    }, 'info'),
+                MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class)
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::query()
+                                ->where('is_on_hold', true)
+                                ->count();
+                        }
+                        $user = $request->user();
+                        return \App\Models\AppraisalJob::query()
+                            ->where('is_on_hold', true)
+                            ->where('appraiser_id', $user->id)
+                            ->count();
+                    }, 'warning'),
 
             ])->icon('eye'),
 
@@ -92,6 +160,8 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             MenuSection::make('Settings', [
                 MenuItem::resource(\App\Nova\User::class),
                 MenuItem::resource(\App\Nova\ProvinceTax::class),
+                MenuItem::resource(\App\Nova\Province::class),
+                MenuItem::resource(\App\Nova\City::class),
             ])->icon('cog'),
 
             MenuSection::make('Clients', [
