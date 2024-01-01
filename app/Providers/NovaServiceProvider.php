@@ -27,6 +27,7 @@ use Laravel\Nova\NovaApplicationServiceProvider;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
+
     /**
      * Bootstrap any application services.
      *
@@ -104,7 +105,12 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         ]);
 
         Nova::footer(function ($request) {
-            return Blade::render('');
+            return Blade::render('
+            <p class="text-center">Created by <a class="link-default" href="https://offerland.ca/" target="_blank">OFFERLAND</a> · v{!! $version !!}</p>
+        ', [
+                'version' => '0.0.1',
+                'year' => date('Y'),
+            ]);;
         });
 
         Nova::style('nova-logo', asset('css/nova-logo.css'));

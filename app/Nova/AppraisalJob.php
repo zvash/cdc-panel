@@ -25,6 +25,8 @@ use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Nova\Lenses\ReviewerInvoice;
+use App\Nova\Metrics\CompletedJobsPerDay;
+use App\Nova\Metrics\CompletedJobsPerMonth;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
@@ -430,7 +432,13 @@ class AppraisalJob extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        return [];
+        return [
+            (new CompletedJobsPerDay())
+                ->width('2/3')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+        ];
     }
 
     /**
