@@ -96,6 +96,28 @@ trait AppraisalJobLensIndex
                     return $user->name;
                 }),
 
+            Text::make('Reviewer', 'appraiser_id')
+                ->exceptOnForms()
+                ->displayUsing(function ($value) {
+                    if (!$value) {
+                        return '-';
+                    }
+                    $reviewer = null;
+                    if ($this->reviewer_id) {
+                        $reviewer = \App\Models\User::query()->find($this->reviewer_id);
+
+                    } else {
+                        $reviewers = \App\Models\User::query()->find($value)->reviewers;
+                        if ($reviewers && count($reviewers) > 0) {
+                            $reviewer = \App\Models\User::query()->find($reviewers[0]);
+                        }
+                    }
+                    if ($reviewer) {
+                        return "<a href='/resources/users/{$reviewer->id}' class='link-default'>{$reviewer->name}</a>";
+                    }
+                    return '-';
+                })->asHtml(),
+
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
                 \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',

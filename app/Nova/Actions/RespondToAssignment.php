@@ -111,16 +111,28 @@ class RespondToAssignment extends Action
             }
 
             $this->updateAssignmentStatus($user, $fields);
+            $this->putJobBackToPendingIfNeeded($fields);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('error message', ['msg' => $e->getMessage()]);
             return Action::danger('An error occurred while processing your request.');
         }
         if ($fields->response == 'decline' && $this->source == 'detail') {
             return Action::redirect('/resources/appraisal-jobs/');
         }
         return Action::message('Response recorded.');
+    }
+
+    private function putJobBackToPendingIfNeeded($fields)
+    {
+        if ($fields->response == 'decline') {
+            if ($this->model->assignments()
+                ->where('status', AppraisalJobAssignmentStatus::Pending)->exists()) {
+                return;
+            } else {
+                $this->model->setAttribute('status', AppraisalJobStatus::Pending)->save();
+            }
+        }
     }
 
     private function acceptJob($user)

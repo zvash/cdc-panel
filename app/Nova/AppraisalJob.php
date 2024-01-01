@@ -214,6 +214,28 @@ class AppraisalJob extends Resource
                     return $user->name;
                 }),
 
+            Text::make('Reviewer', 'appraiser_id')
+                ->exceptOnForms()
+                ->displayUsing(function ($value) {
+                    if (!$value) {
+                        return '-';
+                    }
+                    $reviewer = null;
+                    if ($this->reviewer_id) {
+                        $reviewer = \App\Models\User::query()->find($this->reviewer_id);
+
+                    } else {
+                        $reviewers = \App\Models\User::query()->find($value)->reviewers;
+                        if ($reviewers && count($reviewers) > 0) {
+                            $reviewer = \App\Models\User::query()->find($reviewers[0]);
+                        }
+                    }
+                    if ($reviewer) {
+                        return "<a href='/resources/users/{$reviewer->id}' class='link-default'>{$reviewer->name}</a>";
+                    }
+                    return '-';
+                })->asHtml(),
+
             File::make('File')
                 ->disk('local')
                 ->path('appraisal-job-files')
@@ -258,14 +280,14 @@ class AppraisalJob extends Resource
                 ->exceptOnForms()
                 ->hideFromIndex(),
 
-            BelongsTo::make('Reviewer', 'reviewer', User::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->nullable()
-                ->hideFromIndex()
-                ->displayUsing(function ($user) {
-                    return $user->name;
-                }),
+//            BelongsTo::make('Reviewer', 'reviewer', User::class)
+//                ->searchable()
+//                ->exceptOnForms()
+//                ->nullable()
+//                ->hideFromIndex()
+//                ->displayUsing(function ($user) {
+//                    return $user->name;
+//                }),
 
 //            Select::make('Reviewer', 'reviewer_id')
 //                ->options(\App\Models\User::whereHas('roles', function ($roles) {
@@ -571,10 +593,12 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.add_file.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                        || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 })
                 ->canRun(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request);
+                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                        || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 }),
             (new MarkAsCompleted())
                 ->exceptOnIndex()
@@ -657,6 +681,27 @@ class AppraisalJob extends Resource
             && !$this->resource->is_on_hold
             && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
             && $this->resource->appraiser_id == $user->id;
+    }
+
+    private function userIsTheJobsReviewerAndJobIsInReview(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->status == \App\Enums\AppraisalJobStatus::InReview->value
+            && (
+                $this->resource->reviewer_id == $user->id
+                || (
+                    $this->resource->appraiser_id
+                    && \App\Models\User::query()
+                        ->where('id', $this->resource->appraiser_id)
+                        ->whereJsonContains('reviewers', "{$user->id}")
+                        ->exists()
+                )
+            );
     }
 
     /**
