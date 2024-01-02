@@ -4,6 +4,7 @@ namespace App\Nova;
 
 use App\Nova\Metrics\CompletedJobsPerDay;
 use Dniccum\PhoneNumber\PhoneNumber;
+use Illuminate\Support\Facades\Log;
 use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;

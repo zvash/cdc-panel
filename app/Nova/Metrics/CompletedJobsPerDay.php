@@ -3,6 +3,7 @@
 namespace App\Nova\Metrics;
 
 use App\Models\AppraisalJob;
+use Illuminate\Support\Facades\Log;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Trend;
 use Laravel\Nova\Metrics\TrendResult;
@@ -32,6 +33,7 @@ class CompletedJobsPerDay extends Trend
         $this->source = $source;
         return $this;
     }
+
     /**
      * Calculate the value of the metric.
      *
@@ -46,7 +48,7 @@ class CompletedJobsPerDay extends Trend
         }
         if ($this->provinceId) {
             $query->join('offices', 'offices.id', '=', 'appraisal_jobs.office_id')
-                ->where('offices.province', $this->provinceName);
+                ->whereRaw("offices.province = '{$this->provinceName}'");
         }
         return $this->countByDays($request, $query, 'completed_at')
             ->suffix('job');
@@ -99,6 +101,12 @@ class CompletedJobsPerDay extends Trend
      */
     public function uriKey()
     {
+        if ($this->provinceId) {
+            return 'completed-job-per-day' . $this->provinceId ?? '-' . $this->provinceId;
+        }
+        if ($this->source) {
+            return 'completed-job-per-day-' . str_replace('_id', '', $this->source);
+        }
         return 'completed-job-per-day';
     }
 }
