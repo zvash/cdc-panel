@@ -13,6 +13,17 @@ class CompletedJobsPerDay extends Trend
 
     private $source = '';
 
+    private $provinceId = 0;
+
+    private $provinceName = '';
+
+    public function setProvince($provinceId, $provinceName)
+    {
+        $this->provinceId = $provinceId;
+        $this->provinceName = $provinceName;
+        return $this;
+    }
+
     /**
      * @param string $source
      */
@@ -32,6 +43,10 @@ class CompletedJobsPerDay extends Trend
         $query = AppraisalJob::query()->whereNotNull('completed_at');
         if ($this->source && $request->resourceId) {
             $query->where($this->source, $request->resourceId);
+        }
+        if ($this->provinceId) {
+            $query->join('offices', 'offices.id', '=', 'appraisal_jobs.office_id')
+                ->where('offices.province', $this->provinceName);
         }
         return $this->countByDays($request, $query, 'completed_at')
             ->suffix('job');
@@ -67,6 +82,14 @@ class CompletedJobsPerDay extends Trend
     public function cacheFor()
     {
         // return now()->addMinutes(5);
+    }
+
+    public function name()
+    {
+        if ($this->provinceName) {
+            return 'Completed Jobs Per Day in ' . $this->provinceName;
+        }
+        return 'Completed Jobs Per Day';
     }
 
     /**

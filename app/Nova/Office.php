@@ -4,7 +4,6 @@ namespace App\Nova;
 
 use App\Nova\Metrics\CompletedJobsPerDay;
 use Dniccum\PhoneNumber\PhoneNumber;
-use Illuminate\Http\Request;
 use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
@@ -41,7 +40,7 @@ class Office extends Resource
 
     public static function redirectAfterCreate(NovaRequest $request, $resource)
     {
-        return '/resources/'.static::uriKey();
+        return '/resources/' . static::uriKey();
     }
 
     /**
@@ -99,13 +98,24 @@ class Office extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        return [
+        $provinces = \App\Models\Province::pluck('name', 'id');
+        $completedPerProvinces = [];
+        foreach ($provinces as $provinceId => $provinceName) {
+            $completedPerProvinces[] = (new CompletedJobsPerDay())
+                ->width('1/3')
+                ->setProvince($provinceId, $provinceName)
+                ->canSee(function ($request) {
+                    return $request->user()->hasManagementAccess();
+                })
+                ->defaultRange('7');
+        }
+        return array_merge([
             (new CompletedJobsPerDay())
                 ->width('2/3')
                 ->setSource('office_id')
                 ->defaultRange('7')
                 ->onlyOnDetail(),
-        ];
+        ], $completedPerProvinces);
     }
 
     /**
