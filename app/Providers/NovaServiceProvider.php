@@ -23,6 +23,7 @@ use App\Observers\UserObserver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Laravel\Nova\Menu\Menu;
 use Laravel\Nova\Menu\MenuItem;
 use Laravel\Nova\Menu\MenuSection;
 use Laravel\Nova\Nova;
@@ -52,6 +53,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
         Nova::userTimezone(function (Request $request) {
             return $request->user()?->timezone;
+        });
+
+        Nova::userMenu(function (Request $request, Menu $menu) {
+            return $menu
+                ->append(MenuItem::externalLink('Help', 'mailto:hamid@offerland.ca'));
         });
 
         Nova::mainMenu(fn($request) => [
@@ -176,11 +182,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
         Nova::footer(function ($request) {
             return Blade::render('
-            <p class="text-center">Created by <a class="link-default" href="https://offerland.ca/" target="_blank">OFFERLAND</a> · v{!! $version !!}</p>
+            <p class="text-center">Powered by <a class="link-default" href="https://offerland.ca/" target="_blank">Offerland</a> - {!! $year !!}</p>
         ', [
-                'version' => '0.0.1',
+
                 'year' => date('Y'),
-            ]);;
+            ]);
         });
 
         Nova::style('nova-logo', asset('css/nova-logo.css'));
