@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Nova\Metrics\CompletedJobsPerDay;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\FormData;
@@ -98,7 +99,13 @@ class Office extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        return [];
+        return [
+            (new CompletedJobsPerDay())
+                ->width('2/3')
+                ->setSource('office_id')
+                ->defaultRange('7')
+                ->onlyOnDetail(),
+        ];
     }
 
     /**

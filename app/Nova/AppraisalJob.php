@@ -25,8 +25,13 @@ use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Nova\Lenses\ReviewerInvoice;
+use App\Nova\Metrics\AverageAppraisalProcessDuration;
+use App\Nova\Metrics\AverageJobCreationToCompletionDuration;
+use App\Nova\Metrics\AverageReviewerProcessDuration;
+use App\Nova\Metrics\AverageWorkOnJobDuration;
 use App\Nova\Metrics\CompletedJobsPerDay;
 use App\Nova\Metrics\CompletedJobsPerMonth;
+use App\Nova\Metrics\JobPerStatus;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
@@ -413,6 +418,7 @@ class AppraisalJob extends Resource
             GoogleAutocomplete::make('Address', 'property_address')
                 ->countries('CA')
                 ->required()
+                ->rules('required')
                 ->hideFromIndex(),
 
             Text::make('Postal Code', 'property_postal_code')
@@ -457,6 +463,32 @@ class AppraisalJob extends Resource
         return [
             (new CompletedJobsPerDay())
                 ->width('2/3')
+                ->defaultRange('7')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new JobPerStatus())
+                ->width('1/3')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new AverageAppraisalProcessDuration())
+                ->width('1/3')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new AverageReviewerProcessDuration())
+                ->width('1/3')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new AverageWorkOnJobDuration())
+                ->width('1/3')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                }),
+            (new AverageJobCreationToCompletionDuration())
+                ->width('full')
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
                 }),

@@ -2,7 +2,8 @@
 
 namespace App\Nova;
 
-use App\Nova\Actions\InviteUserAction;
+use App\Nova\Metrics\AverageResponseTime;
+use App\Nova\Metrics\CompletedJobsPerDay;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -11,9 +12,7 @@ use Laravel\Nova\Fields\Avatar;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\FormData;
-use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\MorphToMany;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\PasswordConfirmation;
@@ -244,7 +243,18 @@ class User extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        return [];
+        return [
+            (new AverageResponseTime())
+                ->width('1/3'),
+            (new AverageResponseTime())
+                ->width('1/3')
+                ->onlyOnDetail(),
+            (new CompletedJobsPerDay())
+                ->width('2/3')
+                ->setSource('appraiser_id')
+                ->defaultRange('7')
+                ->onlyOnDetail(),
+        ];
     }
 
     /**

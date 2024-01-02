@@ -2,25 +2,15 @@
 
 namespace App\Nova\Metrics;
 
-use App\Models\AppraisalJob;
+use App\Models\AppraisalJobChangeLog;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Trend;
 use Laravel\Nova\Metrics\TrendResult;
 use Laravel\Nova\Nova;
 
-class CompletedJobsPerDay extends Trend
+class AverageResponseTime extends Trend
 {
 
-    private $source = '';
-
-    /**
-     * @param string $source
-     */
-    public function setSource(string $source)
-    {
-        $this->source = $source;
-        return $this;
-    }
     /**
      * Calculate the value of the metric.
      *
@@ -29,12 +19,28 @@ class CompletedJobsPerDay extends Trend
      */
     public function calculate(NovaRequest $request)
     {
-        $query = AppraisalJob::query()->whereNotNull('completed_at');
-        if ($this->source && $request->resourceId) {
-            $query->where($this->source, $request->resourceId);
+        $query = AppraisalJobChangeLog::query()->fromSub(function ($query) {
+            $query->from('appraisal_job_change_logs')
+                ->selectRaw('
+                    id,
+                    user_id,
+                    action,
+                    duration,
+                    updated_at,
+                    created_at
+                ');
+        }, 'appraisal_job_change_logs')
+            ->whereIn('action', ['accepted', 'declined']);
+        if ($request->resourceId) {
+            $query->where('user_id', $request->resourceId);
         }
-        return $this->countByDays($request, $query, 'completed_at')
-            ->suffix('job');
+        if ($request->user()->isAppraiser()) {
+            $query->where('user_id', $request->user()->id);
+        }
+        return $this->averageByDays($request, $query, 'duration', 'updated_at')
+            ->transform(function ($value) {
+                return intval($value / 60);
+            })->suffix('minute');
     }
 
     /**
@@ -54,8 +60,6 @@ class CompletedJobsPerDay extends Trend
             30 => Nova::__('1 Month'),
             60 => Nova::__('2 Months'),
             90 => Nova::__('3 Months'),
-            180 => Nova::__('6 Months'),
-            365 => Nova::__('1 Year'),
         ];
     }
 
@@ -69,6 +73,14 @@ class CompletedJobsPerDay extends Trend
         // return now()->addMinutes(5);
     }
 
+    public function name()
+    {
+        if (request()->resourceId) {
+            return 'Average Response Time';
+        }
+        return 'Overall Average Response Time';
+    }
+
     /**
      * Get the URI key for the metric.
      *
@@ -76,6 +88,6 @@ class CompletedJobsPerDay extends Trend
      */
     public function uriKey()
     {
-        return 'completed-job-per-day';
+        return 'average-response-time';
     }
 }
