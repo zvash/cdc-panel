@@ -98,7 +98,9 @@ class Office extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        $provinces = \App\Models\Province::pluck('name', 'id');
+        $provinces = \App\Models\Province::query()
+            ->whereRaw('name in (select province from offices)')
+            ->pluck('name', 'id');
         $completedPerProvinces = [];
         foreach ($provinces as $provinceId => $provinceName) {
             $completedPerProvinces[] = (new CompletedJobsPerDay())
