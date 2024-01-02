@@ -45,6 +45,10 @@ class AppraisalJobFile extends Resource
         if (!$user) {
             return false;
         }
+        $owner = \App\Models\User::find($this->user_id);
+        if ($owner && $owner->hasManagementAccess() && !$user->hasManagementAccess()) {
+            return false;
+        }
         return $user->hasManagementAccess()
             || $user->id = $this->user_id
                 || (

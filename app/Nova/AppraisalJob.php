@@ -32,6 +32,7 @@ use App\Nova\Metrics\AverageWorkOnJobDuration;
 use App\Nova\Metrics\CompletedJobsPerDay;
 use App\Nova\Metrics\CompletedJobsPerMonth;
 use App\Nova\Metrics\JobPerStatus;
+use App\Nova\Repeater\AppraisalJobFileLine;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
@@ -48,6 +49,7 @@ use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Line;
 use Laravel\Nova\Fields\Number;
+use Laravel\Nova\Fields\Repeater;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
@@ -248,6 +250,13 @@ class AppraisalJob extends Resource
                 ->creationRules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp')
                 ->updateRules('nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
 
+//            Repeater::make('Files', 'files')
+//                ->uniqueField('id')
+//                ->rules('')
+//                ->repeatables([
+//                    AppraisalJobFileLine::make()
+//                ])->asHasMany(AppraisalJobFile::class),
+
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
                 \App\Enums\AppraisalJobStatus::Assigned->value => 'warning',
@@ -343,13 +352,13 @@ class AppraisalJob extends Resource
                 ->options(\App\Models\Province::pluck('name', 'name'))
                 ->displayUsingLabels(),
 
-            Number::make('Tax (%)', 'tax')
-                ->min(0)
-                ->max(100)
-                ->step(0.01)
-                ->rules('nullable', 'numeric', 'min:0', 'max:100')
-                ->hideFromIndex()
-                ->nullable(),
+//            Number::make('Tax (%)', 'tax')
+//                ->min(0)
+//                ->max(100)
+//                ->step(0.01)
+//                ->rules('nullable', 'numeric', 'min:0', 'max:100')
+//                ->hideFromIndex()
+//                ->nullable(),
 
             Currency::make('Fee Quoted')
                 ->min(0)
@@ -625,11 +634,11 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.add_file.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                    return $this->userCanAddFileToJob($request)
                         || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 })
                 ->canRun(function () use ($request) {
-                    return $this->userIsTheJobsAppraiserAndJobIsInProgress($request)
+                    return $this->userCanAddFileToJob($request)
                         || $this->userIsTheJobsReviewerAndJobIsInReview($request);
                 }),
             (new MarkAsCompleted())
@@ -703,16 +712,22 @@ class AppraisalJob extends Resource
      * @param NovaRequest $request
      * @return bool
      */
-    private function userIsTheJobsAppraiserAndJobIsInProgress(NovaRequest $request): bool
+    private function userCanAddFileToJob(NovaRequest $request): bool
     {
         if ($request instanceof ActionRequest) {
             return true;
         }
         $user = $request->user();
-        return $user->isAppraiser()
-            && !$this->resource->is_on_hold
-            && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
-            && $this->resource->appraiser_id == $user->id;
+
+        return ($user->hasManagementAccess()
+                && in_array($this->resource->status, [
+                    \App\Enums\AppraisalJobStatus::Pending->value,
+                    \App\Enums\AppraisalJobStatus::Assigned->value,
+                ]))
+            || ($user->isAppraiser()
+                && !$this->resource->is_on_hold
+                && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+                && $this->resource->appraiser_id == $user->id);
     }
 
     private function userIsTheJobsReviewerAndJobIsInReview(NovaRequest $request): bool

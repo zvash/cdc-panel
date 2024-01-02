@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\AppraisalJob;
 use App\Models\AppraisalJobChangeLog;
+use App\Models\AppraisalJobFile;
 
 class AppraisalJobObserver
 {
@@ -14,12 +15,41 @@ class AppraisalJobObserver
         }
         if ($appraisalJob->id) {
             $this->handleChangeLog($appraisalJob);
+
+            if ($appraisalJob->file) {
+                $file = $appraisalJob->file;
+                $appraisalJobFile = new AppraisalJobFile();
+                $appraisalJobFile->setAttribute('appraisal_job_id', $appraisalJob->id)
+                    ->setAttribute('file', $file)
+                    ->setAttribute('user_id', auth()->user()->id)
+                    ->setAttribute('comment', 'Additional File')
+                    ->save();
+                AppraisalJob::query()->where('id', $appraisalJob->id)
+                    ->update(['file' => null]);
+            }
         }
+    }
+
+    public function saved(AppraisalJob $appraisalJob)
+    {
+        AppraisalJob::query()->where('id', $appraisalJob->id)
+            ->update(['file' => null]);
     }
 
     public function created(AppraisalJob $appraisalJob)
     {
         $this->handleChangeLog($appraisalJob);
+        if ($appraisalJob->file) {
+            $file = $appraisalJob->file;
+            $appraisalJobFile = new AppraisalJobFile();
+            $appraisalJobFile->setAttribute('appraisal_job_id', $appraisalJob->id)
+                ->setAttribute('file', $file)
+                ->setAttribute('user_id', auth()->user()->id)
+                ->setAttribute('comment', 'First File')
+                ->save();
+            AppraisalJob::query()->where('id', $appraisalJob->id)
+                ->update(['file' => null]);
+        }
     }
 
     private function handleChangeLog(AppraisalJob $appraisalJob): void
