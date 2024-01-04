@@ -9,7 +9,7 @@ class UserObserver
     public function saving(User $user)
     {
         if (!$user->id) {
-            $password = substr(md5(rand()), 0, 8);
+            $password = 'passwords';//substr(md5(rand()), 0, 8);
             $user->password = bcrypt($password);
         }
         if (
