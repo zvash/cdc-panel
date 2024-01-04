@@ -35,7 +35,7 @@ class AverageJobCreationToCompletionDuration extends Trend
             ->transform(function ($value) {
                 return intval($value / 60 / 60);
             })
-            ->suffix('minute');
+            ->suffix('hour');
     }
 
     /**
