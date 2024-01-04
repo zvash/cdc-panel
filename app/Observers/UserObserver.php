@@ -21,9 +21,8 @@ class UserObserver
         }
     }
 
-//    public function created(User $user)
-//    {
-//        $url = route('nova.password.email');
-//        $user->sendPasswordResetNotification("1234567890");
-//    }
+    public function created(User $user)
+    {
+        $user->assignRole('appraiser');
+    }
 }
