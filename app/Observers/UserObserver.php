@@ -20,4 +20,10 @@ class UserObserver
             $user->email = $user->getOriginal('email');
         }
     }
+
+//    public function created(User $user)
+//    {
+//        $url = route('nova.password.email');
+//        $user->sendPasswordResetNotification("1234567890");
+//    }
 }

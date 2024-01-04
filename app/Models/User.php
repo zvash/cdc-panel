@@ -53,6 +53,19 @@ class User extends Authenticatable
         'reviewers' => 'array',
     ];
 
+    public static function getAllAppraisersWithRemainingCapacity()
+    {
+        return User::query()
+            ->withCount('appraisalJobs')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'Appraiser');
+            })
+            ->get()
+            ->filter(function ($user) {
+                return $user->getRemainingCapacityAsInt() > 0;
+            });
+    }
+
     public function __call($method, $parameters)
     {
         if (

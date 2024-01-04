@@ -203,4 +203,8 @@ return [
         'stopped' => '/',
     ],
 
+    'routes' => [
+        'login' => '/login',
+    ]
+
 ];

@@ -7,6 +7,7 @@ use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalJobAssignment;
 use App\Models\Office;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -96,7 +97,8 @@ class AssignAppraiserAction extends Action
         $appraisers = [];
         $offeredTo = [];
         if ($this->model && $this->model->office != null) {
-            $appraisers = $this->model->office->getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
+            //$appraisers = $this->model->office->getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
+            $appraisers = User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
             $offeredTo = AppraisalJobAssignment::query()
                 ->where('appraisal_job_id', $this->model->id)
                 ->pluck('appraisal_job_id', 'appraiser_id')

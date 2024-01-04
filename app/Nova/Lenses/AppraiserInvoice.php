@@ -65,7 +65,7 @@ class AppraiserInvoice extends Lens
 
     public function name()
     {
-        return 'Appraisers Invoices';
+        return 'Transactions';
     }
 
     /**
@@ -89,9 +89,10 @@ class AppraiserInvoice extends Lens
                 appraisal_jobs.payment_terms,
                 appraisal_jobs.completed_at,
                 appraiser_id,
-                'Appraiser' AS user_type,
+                reviewer_id,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
                 users.commission,
+                reviewers.reviewer_commission,
                 province_taxes.total as province_tax
             FROM
                 appraisal_jobs
@@ -99,6 +100,8 @@ class AppraiserInvoice extends Lens
                 users
             ON
                 users.id = appraiser_id
+            INNER JOIN users as reviewers
+                    ON reviewers.id = reviewer_id
             INNER JOIN
                 provinces
             ON
@@ -116,47 +119,7 @@ class AppraiserInvoice extends Lens
             AND
                 appraiser_id IS NOT NULL
             AND
-                (appraiser_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
-            UNION
-            SELECT
-                appraisal_jobs.id,
-                appraisal_jobs.client_id,
-                appraisal_jobs.office_id,
-                appraisal_jobs.property_address,
-                appraisal_jobs.created_at,
-                appraisal_jobs.reference_number,
-                appraisal_jobs.fee_quoted,
-                appraisal_jobs.payment_terms,
-                appraisal_jobs.completed_at,
-                reviewer_id,
-                'Reviewer' AS user_type,
-                CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
-                users.reviewer_commission AS commission,
-                province_taxes.total AS province_tax
-            FROM
-                appraisal_jobs
-            INNER JOIN
-                users
-            ON
-                users.id = reviewer_id
-            INNER JOIN
-                provinces
-            ON
-                provinces.name = appraisal_jobs.province
-            INNER JOIN
-                province_taxes
-            ON
-                province_taxes.province_id = provinces.id
-            WHERE
-                completed_at IS NOT NULL
-            AND
-                fee_quoted IS NOT NULL
-            AND
-                province IS NOT NULL
-            AND
-                reviewer_id IS NOT NULL
-            AND
-                (reviewer_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
+                (appraiser_id = " . auth()->user()->id . " OR reviewer_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
         ";
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')->orderBy('completed_at', 'desc')
@@ -179,13 +142,6 @@ class AppraiserInvoice extends Lens
                     return auth()->user()->hasManagementAccess();
                 })
                 ->searchable()
-                ->sortable(),
-            Badge::make('Appraiser Role', 'user_type')
-                ->map([
-                    'Appraiser' => 'info',
-                    'Reviewer' => 'warning',
-                ])
-                ->filterable()
                 ->sortable(),
             BelongsTo::make('Office')
                 ->filterable()
@@ -216,6 +172,20 @@ class AppraiserInvoice extends Lens
             Text::make('Appraiser Total', 'fee_quoted')
                 ->resolveUsing(function ($value) {
                     return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->commission ?? 0) / 100), 2);
+                })
+                ->sortable(),
+            Text::make('Reviewer Commission', 'reviewer_commission')
+                ->displayUsing(fn($value) => ($value ?? 0) . '%')
+                ->sortable(),
+            Text::make('Reviewer Fee', 'fee_quoted')
+                ->resolveUsing(fn($value) => '$' . round($value * ($this->reviewer_commission ?? 0) / 100, 2))
+                ->sortable(),
+            Text::make('Reviewer GST', 'province_tax')
+                ->resolveUsing(fn($value) => '$' . round(($value * ($this->reviewer_commission ?? 0) * $this->fee_quoted / 100 / 100), 2))
+                ->sortable(),
+            Text::make('Reviewer Total', 'fee_quoted')
+                ->resolveUsing(function ($value) {
+                    return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->reviewer_commission ?? 0) / 100), 2);
                 })
                 ->sortable(),
         ];

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DownloadController;
+use Laravel\Nova\Http\Controllers\ForgotPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,10 @@ Route::get('/home', function () {
     return view('welcome');
 });
 
+Route::get('/login', function () {
+    return view('vendor/nova/auth/login');
+});
+
 Route::get(
     '/download-job-file/{appraisalJobFile}',
     [DownloadController::class, 'downloadAppraisalJobFile'])
@@ -27,3 +32,6 @@ Route::get(
     '/download-rejected-job-file/{appraisalJobRejection}',
     [DownloadController::class, 'downloadRejectedAppraisalJobFile'])
     ->name('download-rejected-job-file');
+
+Route::get('reset-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.reset');
+

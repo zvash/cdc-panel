@@ -154,10 +154,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             MenuSection::make('Invoices', [
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\AppraiserInvoice::class),
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\AppraiserMonthlyInvoice::class),
-                MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientInvoice::class)
-                    ->canSee(function ($request) {
-                        return $request->user()->hasManagementAccess();
-                    }),
+//                MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientInvoice::class)
+//                    ->canSee(function ($request) {
+//                        return $request->user()->hasManagementAccess();
+//                    }),
                 MenuItem::lens(AppraisalJob::class, \App\Nova\Lenses\ClientMonthlyInvoice::class)
                     ->canSee(function ($request) {
                         return $request->user()->hasManagementAccess();
@@ -180,11 +180,12 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             ])->icon('office-building'),
         ]);
 
+        Nova::script('lock-light-theme', __DIR__ . '/../../public/theme.js');
+
         Nova::footer(function ($request) {
             return Blade::render('
             <p class="text-center">Powered by <a class="link-default" href="https://offerland.ca/" target="_blank">Offerland</a> - {!! $year !!}</p>
         ', [
-
                 'year' => date('Y'),
             ]);
         });

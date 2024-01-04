@@ -121,9 +121,6 @@ class User extends Resource
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
-                ->readonly(function (NovaRequest $request) {
-                    return !$request->user()->isSuperAdmin() && !$request->user()->isSupervisor();
-                })
                 ->displayUsing(function ($value) {
                     return Str::limit($value, 50, '...');
                 })
@@ -159,6 +156,15 @@ class User extends Resource
             })
             ->toArray();
 
+        $allOtherAppraisers = \App\Models\User::query()
+            ->where('id', '!=', $this->id)
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'appraiser');
+            })
+            ->get()
+            ->pluck('name', 'id')
+            ->toArray();
+
         return [
             PhoneNumber::make('Phone')
                 ->countries(['CA', 'US'])
@@ -179,18 +185,14 @@ class User extends Resource
             MultiSelect::make('Reviewers', 'reviewers')
                 ->placeholder(' ')
                 ->saveAsJSON()
-                ->options(\App\Models\User::query()
-                    ->whereHas('roles', function ($query) {
-                        $query->where('name', 'appraiser');
-                    })->pluck('name', 'id'))
-                ->dependsOn(['office_id'], function (MultiSelect $field, NovaRequest $request, FormData $formData) use ($reviewerOptions) {
-                    if (array_key_exists($formData->office_id, $reviewerOptions)) {
-                        Log::info('Found', $reviewerOptions[$formData->office_id]);
-                        $field->options($reviewerOptions[$formData->office_id]);
-                    } else {
-                        $field->options([]);
-                    }
-                })
+                ->options($allOtherAppraisers)
+//                ->dependsOn(['office_id'], function (MultiSelect $field, NovaRequest $request, FormData $formData) use ($reviewerOptions) {
+//                    if (array_key_exists($formData->office_id, $reviewerOptions)) {
+//                        $field->options($reviewerOptions[$formData->office_id]);
+//                    } else {
+//                        $field->options([]);
+//                    }
+//                })
 //                ->hideWhenUpdating(function (NovaRequest $request) {
 //                    return !$request->user()->isSupervisor()
 //                        && !$request->user()->isSuperAdmin()
@@ -373,11 +375,32 @@ class User extends Resource
      * @param int|null $limit
      * @return \Laravel\Nova\Panel
      */
-    protected
-    function panel(string $key, array $fields, ?int $limit = null): Panel
+    protected function panel(string $key, array $fields, ?int $limit = null): Panel
     {
         $panel = new Panel(__($key), $fields);
 
         return $limit ? $panel->limit($limit) : $panel;
+    }
+
+    private function getInvitableRoles(NovaRequest $request)
+    {
+        $invitableRoles = [];
+        if ($request->user()->isSupervisor()) {
+            $invitableRoles = [
+                'SuperAdmin' => 'SuperAdmin',
+                'Admin' => 'Admin',
+                'Appraiser' => 'Appraiser',
+            ];
+        } else if ($request->user()->isSuperAdmin()) {
+            $invitableRoles = [
+                'Admin' => 'Admin',
+                'Appraiser' => 'Appraiser',
+            ];
+        } else if ($request->user()->isAdmin()) {
+            $invitableRoles = [
+                'Appraiser' => 'Appraiser',
+            ];
+        }
+        return $invitableRoles;
     }
 }
