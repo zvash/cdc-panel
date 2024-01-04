@@ -117,9 +117,15 @@ class ClientMonthlyInvoice extends Lens
             BelongsTo::make('Client', 'client', Client::class)
                 ->filterable()
                 ->sortable(),
-            Currency::make('CDC Fee', 'fee_quoted')->sortable(),
-            Currency::make('CDC Tax', 'cdc_tax')->sortable(),
-            Currency::make('CDC Total', 'cdc_fee_with_tax')->sortable(),
+            Currency::make('CDC Fee', 'fee_quoted')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('CDC Tax', 'cdc_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('CDC Total', 'cdc_fee_with_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
         ];
     }
 
