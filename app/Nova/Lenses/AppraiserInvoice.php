@@ -5,12 +5,14 @@ namespace App\Nova\Lenses;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalType;
 use App\Nova\User;
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -90,6 +92,8 @@ class AppraiserInvoice extends Lens
                 appraisal_jobs.fee_quoted,
                 appraisal_jobs.payment_terms,
                 appraisal_jobs.completed_at,
+                YEAR(appraisal_jobs.completed_at) AS completed_at_year,
+                MONTH(appraisal_jobs.completed_at) AS completed_at_month,
                 appraiser_id,
                 reviewer_id,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
@@ -138,7 +142,35 @@ class AppraiserInvoice extends Lens
     {
         return [
             Text::make('Invoice Number', 'invoice_number')->sortable(),
+            Select::make('Year', 'completed_at_year')
+                ->options([
+                    Carbon::now()->year => Carbon::now()->year,
+                    Carbon::now()->subYear()->year => Carbon::now()->subYear()->year,
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
+            Select::make('Month', 'completed_at_month')
+                ->options([
+                    1 => 'January',
+                    2 => 'February',
+                    3 => 'March',
+                    4 => 'April',
+                    5 => 'May',
+                    6 => 'June',
+                    7 => 'July',
+                    8 => 'August',
+                    9 => 'September',
+                    10 => 'October',
+                    11 => 'November',
+                    12 => 'December',
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
+
             Text::make('File Number', 'reference_number')->sortable(),
+
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->filterable(function () {
                     return auth()->user()->hasManagementAccess();
