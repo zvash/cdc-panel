@@ -100,7 +100,7 @@ class ClientMonthlyInvoice extends Lens
                 })
                 , 'appraisal_jobs'
             )->select('invoice_number', 'client_id',)
-            ->selectRaw('SUM(fee_quoted) AS fee_quoted, SUM(cdc_fee_with_tax) AS cdc_fee_with_tax, SUM(cdc_tax) AS cdc_tax, completed_at_year, completed_at_month')
+            ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2))) AS fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) AS cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) AS cdc_tax, completed_at_year, completed_at_month')
             ->groupBy('invoice_number', 'client_id', 'completed_at_year', 'completed_at_month')
             ->orderBy('invoice_number', 'desc')
         ));
