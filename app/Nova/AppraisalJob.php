@@ -360,12 +360,20 @@ class AppraisalJob extends Resource
 //                ->hideFromIndex()
 //                ->nullable(),
 
-            Currency::make('Fee Quoted')
-                ->min(0)
-                ->max(999999.99)
-                ->step(0.01)
+//            Currency::make('Fee Quoted')
+//                ->min(0)
+//                ->max(999999.99)
+//                ->step(0.01)
+//                ->hideFromIndex()
+//                ->nullable(),
+
+            Text::make('Fee Quoted')
                 ->hideFromIndex()
-                ->nullable(),
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
 
             Select::make('Payment Terms')
                 ->options(\App\Enums\PaymentTerm::array())
