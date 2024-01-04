@@ -107,7 +107,7 @@ class User extends Resource
                 ->path('users')
                 ->prunable()
                 ->deletable()
-                ->squared()
+                ->rounded()
                 ->help(__('nova.fields.common.image', [
                     'mimes' => 'jpeg, jpg, png',
                     'dimension' => 'For better UX, Image ratio should be 1:1',
