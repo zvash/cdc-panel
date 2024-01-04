@@ -31,9 +31,9 @@ class AverageAppraisalProcessDuration extends Trend
         }, 'appraisal_job_change_logs');
         return $this->averageByDays($request, $query, 'duration', 'updated_at')
             ->transform(function ($value) {
-                return intval($value / 60);
+                return intval($value / 60 / 60);
             })
-            ->suffix('minute');
+            ->suffix('hour');
     }
 
     /**

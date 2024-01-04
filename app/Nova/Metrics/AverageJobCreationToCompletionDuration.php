@@ -33,7 +33,7 @@ class AverageJobCreationToCompletionDuration extends Trend
         }, 'appraisal_jobs');
         return $this->averageByDays($request, $query, 'duration', 'completed_at')
             ->transform(function ($value) {
-                return intval($value / 60);
+                return intval($value / 60 / 60);
             })
             ->suffix('minute');
     }
