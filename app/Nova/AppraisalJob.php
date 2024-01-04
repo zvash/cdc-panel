@@ -39,6 +39,7 @@ use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Flatroy\FieldProgressbar\FieldProgressbar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
@@ -167,7 +168,7 @@ class AppraisalJob extends Resource
             Stack::make('Details', [
                 Line::make('Property Address')
                     ->displayUsing(function ($value) {
-                        return str_ireplace(', Canada', '', $value);
+                        return Str::limit(str_ireplace(', Canada', '', $value), 35, '...');
                     })->asHeading(),
                 Line::make('Appraisal Type', 'appraisalType.name')
                     ->displayUsing(function ($value) {
