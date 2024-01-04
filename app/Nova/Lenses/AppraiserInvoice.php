@@ -3,6 +3,7 @@
 namespace App\Nova\Lenses;
 
 use App\Models\AppraisalJob;
+use App\Models\AppraisalType;
 use App\Nova\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -83,6 +84,7 @@ class AppraiserInvoice extends Lens
                 appraisal_jobs.client_id,
                 appraisal_jobs.office_id,
                 appraisal_jobs.property_address,
+                appraisal_jobs.appraisal_type_id,
                 appraisal_jobs.created_at,
                 appraisal_jobs.reference_number,
                 appraisal_jobs.fee_quoted,
@@ -141,12 +143,14 @@ class AppraiserInvoice extends Lens
                 ->filterable(function () {
                     return auth()->user()->hasManagementAccess();
                 })
-                ->searchable()
                 ->sortable(),
             BelongsTo::make('Office')
                 ->filterable()
                 ->sortable(),
             BelongsTo::make('Client')
+                ->filterable()
+                ->sortable(),
+            BelongsTo::make('Appraisal Type')
                 ->filterable()
                 ->sortable(),
             Text::make('Property Address')->sortable(),
