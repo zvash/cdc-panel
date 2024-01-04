@@ -9,6 +9,11 @@ use Laravel\Nova\Nova;
 
 class AverageJobCreationToCompletionDuration extends Trend
 {
+    public function name()
+    {
+        return 'Average Job Cycle Duration';
+    }
+
     /**
      * Calculate the value of the metric.
      *

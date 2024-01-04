@@ -9,6 +9,12 @@ use Laravel\Nova\Nova;
 
 class AverageReviewerProcessDuration extends Trend
 {
+
+    public function name()
+    {
+        return 'Average Review Process Duration';
+    }
+
     /**
      * Calculate the value of the metric.
      *

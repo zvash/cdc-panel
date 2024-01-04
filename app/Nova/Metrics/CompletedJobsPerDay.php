@@ -89,9 +89,9 @@ class CompletedJobsPerDay extends Trend
     public function name()
     {
         if ($this->provinceName) {
-            return 'Completed Jobs Per Day in ' . $this->provinceName;
+            return 'Completed Daily Job in ' . $this->provinceName;
         }
-        return 'Completed Jobs Per Day';
+        return 'Completed Daily Job';
     }
 
     /**

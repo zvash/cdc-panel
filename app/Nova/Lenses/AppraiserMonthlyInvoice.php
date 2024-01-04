@@ -3,9 +3,11 @@
 namespace App\Nova\Lenses;
 
 use App\Nova\User;
+use Carbon\Carbon;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -83,7 +85,9 @@ class AppraiserMonthlyInvoice extends Lens
                 'Appraiser' AS user_type,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
                 users.commission,
-                province_taxes.total as province_tax
+                province_taxes.total as province_tax,
+                YEAR(appraisal_jobs.completed_at) AS completed_at_year,
+                MONTH(appraisal_jobs.completed_at) AS completed_at_month
             FROM
                 appraisal_jobs
             INNER JOIN
@@ -123,7 +127,9 @@ class AppraiserMonthlyInvoice extends Lens
                 'Reviewer' AS user_type,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
                 users.reviewer_commission as commission,
-                province_taxes.total as province_tax
+                province_taxes.total as province_tax,
+                YEAR(appraisal_jobs.completed_at) AS completed_at_year,
+                MONTH(appraisal_jobs.completed_at) AS completed_at_month
             FROM
                 appraisal_jobs
             INNER JOIN
@@ -151,9 +157,9 @@ class AppraiserMonthlyInvoice extends Lens
         ";
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')
-                ->select('invoice_number', 'appraiser_id',)
+                ->select('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fee) AS DECIMAL(10,2)) as appraiser_fee, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
-                ->groupBy('invoice_number', 'appraiser_id')
+                ->groupBy('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->orderBy('invoice_number', 'desc')
         ));
     }
@@ -168,18 +174,56 @@ class AppraiserMonthlyInvoice extends Lens
     {
         return [
             Text::make('Invoice Number', 'invoice_number')->sortable(),
+            Select::make('Year', 'completed_at_year')
+                ->options([
+                    Carbon::now()->year => Carbon::now()->year,
+                    Carbon::now()->subYear()->year => Carbon::now()->subYear()->year,
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
+            Select::make('Month', 'completed_at_month')
+                ->options([
+                    1 => 'January',
+                    2 => 'February',
+                    3 => 'March',
+                    4 => 'April',
+                    5 => 'May',
+                    6 => 'June',
+                    7 => 'July',
+                    8 => 'August',
+                    9 => 'September',
+                    10 => 'October',
+                    11 => 'November',
+                    12 => 'December',
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->filterable(function () {
                     return auth()->user()->hasManagementAccess();
                 })
                 ->searchable()
                 ->sortable(),
-            Currency::make('CDC Fee', 'fee_quoted')->sortable(),
-            Currency::make('CDC Tax', 'cdc_tax')->sortable(),
-            Currency::make('CDC Total', 'cdc_fee_with_tax')->sortable(),
-            Currency::make('Appraiser Fee', 'appraiser_fee')->sortable(),
-            Currency::make('Appraiser Tax', 'appraiser_tax')->sortable(),
-            Currency::make('Appraiser Total', 'appraiser_fee_with_tax')->sortable(),
+            Currency::make('CDC Fee', 'fee_quoted')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('CDC Tax', 'cdc_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('CDC Total', 'cdc_fee_with_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('Appraiser Fee', 'appraiser_fee')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('Appraiser Tax', 'appraiser_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
+            Currency::make('Appraiser Total', 'appraiser_fee_with_tax')
+                ->resolveUsing(fn($value) => round($value, 2))
+                ->sortable(),
         ];
     }
 
@@ -213,7 +257,7 @@ class AppraiserMonthlyInvoice extends Lens
      */
     public function actions(NovaRequest $request)
     {
-        return parent::actions($request);
+        return [];
     }
 
     /**

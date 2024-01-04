@@ -78,7 +78,7 @@ return [
             'name' => 'Rejected Jobs',
         ],
         'not_assigned_appraisal_jobs' => [
-            'name' => 'Not Assigned Jobs',
+            'name' => 'Unassigned Jobs',
         ],
         'in_progress_appraisal_jobs' => [
             'admin_name' => 'In Progress Jobs',

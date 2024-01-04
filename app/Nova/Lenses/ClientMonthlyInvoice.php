@@ -3,9 +3,11 @@
 namespace App\Nova\Lenses;
 
 use App\Nova\Client;
+use Carbon\Carbon;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -77,6 +79,8 @@ class ClientMonthlyInvoice extends Lens
                 ])
                 ->addSelect([
                     'invoice_number' => fn($query) => $query->selectRaw('CONCAT("INV-", YEAR(completed_at), "-", MONTH(completed_at))'),
+                    'completed_at_year' => fn($query) => $query->selectRaw('YEAR(completed_at)'),
+                    'completed_at_month' => fn($query) => $query->selectRaw('MONTH(completed_at)'),
                     'province_tax' => fn($query) => $query->select('total')
                         ->from('provinces')
                         ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
@@ -96,8 +100,8 @@ class ClientMonthlyInvoice extends Lens
                 })
                 , 'appraisal_jobs'
             )->select('invoice_number', 'client_id',)
-            ->selectRaw('SUM(fee_quoted) AS fee_quoted, SUM(cdc_fee_with_tax) AS cdc_fee_with_tax, SUM(cdc_tax) AS cdc_tax')
-            ->groupBy('invoice_number', 'client_id')
+            ->selectRaw('SUM(fee_quoted) AS fee_quoted, SUM(cdc_fee_with_tax) AS cdc_fee_with_tax, SUM(cdc_tax) AS cdc_tax, completed_at_year, completed_at_month')
+            ->groupBy('invoice_number', 'client_id', 'completed_at_year', 'completed_at_month')
             ->orderBy('invoice_number', 'desc')
         ));
     }
@@ -114,6 +118,33 @@ class ClientMonthlyInvoice extends Lens
             Text::make('Invoice Number', 'invoice_number')
                 ->filterable()
                 ->sortable(),
+            Select::make('Year', 'completed_at_year')
+                ->options([
+                    Carbon::now()->year => Carbon::now()->year,
+                    Carbon::now()->subYear()->year => Carbon::now()->subYear()->year,
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
+            Select::make('Month', 'completed_at_month')
+                ->options([
+                    1 => 'January',
+                    2 => 'February',
+                    3 => 'March',
+                    4 => 'April',
+                    5 => 'May',
+                    6 => 'June',
+                    7 => 'July',
+                    8 => 'August',
+                    9 => 'September',
+                    10 => 'October',
+                    11 => 'November',
+                    12 => 'December',
+                ])
+                ->displayUsingLabels()
+                ->filterable()
+                ->sortable(),
+
             BelongsTo::make('Client', 'client', Client::class)
                 ->filterable()
                 ->sortable(),
@@ -159,7 +190,7 @@ class ClientMonthlyInvoice extends Lens
      */
     public function actions(NovaRequest $request)
     {
-        return parent::actions($request);
+        return [];
     }
 
     /**

@@ -9,6 +9,11 @@ use Laravel\Nova\Nova;
 
 class AverageWorkOnJobDuration extends Trend
 {
+    public function name()
+    {
+        return 'Average Appraisal and Review Process Duration';
+    }
+
     /**
      * Calculate the value of the metric.
      *
