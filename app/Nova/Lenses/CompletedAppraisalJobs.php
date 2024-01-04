@@ -6,6 +6,7 @@ use App\Enums\AppraisalJobStatus;
 use App\Nova\Lenses\Traits\AppraisalJobLensIndex;
 use App\Nova\User;
 use Flatroy\FieldProgressbar\FieldProgressbar;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
@@ -109,7 +110,7 @@ class CompletedAppraisalJobs extends Lens
             Stack::make('Details', [
                 Line::make('Property Address')
                     ->displayUsing(function ($value) {
-                        return str_ireplace(', Canada', '', $value);
+                        return Str::limit(str_ireplace(', Canada', '', $value), 35, '...');
                     })->asHeading(),
                 Line::make('Appraisal Type', 'appraisalType.name')
                     ->displayUsing(function ($value) {
