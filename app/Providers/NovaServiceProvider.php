@@ -187,7 +187,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
         Nova::footer(function ($request) {
             return Blade::render('
-            <p class="text-center">Powered by <a class="link-default" href="https://offerland.ca/" target="_blank">Offerland</a> - {!! $year !!}</p>
+            <p class="text-center">Powered by &nbsp;&nbsp;<a class="link-default" href="https://offerland.ca/" target="_blank">
+            <img src="/storage/logo/svglogo.svg" width="90" style="display: inline">
+</a> - {!! $year !!}</p>
         ', [
                 'year' => date('Y'),
             ]);
