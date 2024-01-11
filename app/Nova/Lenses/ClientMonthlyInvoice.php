@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Models\AppraisalType;
 use App\Nova\Client;
 use Carbon\Carbon;
 use Laravel\Nova\Fields\BelongsTo;
@@ -74,6 +75,9 @@ class ClientMonthlyInvoice extends Lens
                 ->select([
                     'id',
                     'client_id',
+                    'office_id',
+                    'appraiser_id',
+                    'appraisal_type_id',
                     'fee_quoted',
                     'completed_at',
                 ])
@@ -146,7 +150,6 @@ class ClientMonthlyInvoice extends Lens
                 ->sortable(),
 
             BelongsTo::make('Client', 'client', Client::class)
-                ->filterable()
                 ->sortable(),
             Currency::make('CDC Fee', 'fee_quoted')
                 ->resolveUsing(fn($value) => round($value, 2))
@@ -157,6 +160,26 @@ class ClientMonthlyInvoice extends Lens
             Currency::make('CDC Total', 'cdc_fee_with_tax')
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
+
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 

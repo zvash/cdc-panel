@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Models\AppraisalType;
 use App\Nova\User;
 use Carbon\Carbon;
 use Laravel\Nova\Fields\BelongsTo;
@@ -74,6 +75,9 @@ class AppraiserMonthlyInvoice extends Lens
             SELECT
                 appraisal_jobs.id,
                 appraisal_jobs.reference_number,
+                appraisal_jobs.appraisal_type_id,
+                appraisal_jobs.client_id,
+                appraisal_jobs.office_id,
                 appraisal_jobs.fee_quoted,
                 appraisal_jobs.fee_quoted * province_taxes.total / 100 + appraisal_jobs.fee_quoted AS cdc_fee_with_tax,
                 appraisal_jobs.fee_quoted * province_taxes.total / 100 AS cdc_tax,
@@ -116,6 +120,9 @@ class AppraiserMonthlyInvoice extends Lens
             SELECT
                 appraisal_jobs.id,
                 appraisal_jobs.reference_number,
+                appraisal_jobs.appraisal_type_id,
+                appraisal_jobs.client_id,
+                appraisal_jobs.office_id,
                 appraisal_jobs.fee_quoted,
                 appraisal_jobs.fee_quoted * province_taxes.total / 100 + appraisal_jobs.fee_quoted AS cdc_fee_with_tax,
                 appraisal_jobs.fee_quoted * province_taxes.total / 100 AS cdc_tax,
@@ -201,9 +208,6 @@ class AppraiserMonthlyInvoice extends Lens
                 ->filterable()
                 ->sortable(),
             BelongsTo::make('Appraiser', 'appraiser', User::class)
-                ->filterable(function () {
-                    return auth()->user()->hasManagementAccess();
-                })
                 ->searchable()
                 ->sortable(),
             Currency::make('CDC Fee', 'fee_quoted')
@@ -224,6 +228,34 @@ class AppraiserMonthlyInvoice extends Lens
             Currency::make('Appraiser Total', 'appraiser_fee_with_tax')
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
+
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 

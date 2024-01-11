@@ -26,6 +26,11 @@ class AverageJobCreationToCompletionDuration extends Trend
             $query->from('appraisal_jobs')
                 ->selectRaw('
                     id,
+                    appraiser_id,
+                    office_id,
+                    appraisal_type_id,
+                    reference_number,
+                    client_id,
                     created_at,
                     completed_at,
                     (UNIX_TIMESTAMP(completed_at) - UNIX_TIMESTAMP(created_at)) as duration

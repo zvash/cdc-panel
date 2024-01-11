@@ -177,13 +177,10 @@ class AppraiserInvoice extends Lens
                 })
                 ->sortable(),
             BelongsTo::make('Office')
-                ->filterable()
                 ->sortable(),
             BelongsTo::make('Client')
-                ->filterable()
                 ->sortable(),
             BelongsTo::make('Appraisal Type')
-                ->filterable()
                 ->sortable(),
             Text::make('Property Address')->sortable(),
             Date::make('Completed At')
@@ -224,6 +221,26 @@ class AppraiserInvoice extends Lens
                     return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->reviewer_commission ?? 0) / 100), 2);
                 })
                 ->sortable(),
+
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 

@@ -141,12 +141,12 @@ class AppraisalJob extends Resource
         return $this->panel('Order Information', [
             ID::make()->sortable(),
 
-//            BelongsTo::make('Created By', 'createdBy', User::class)
-//                ->searchable()
-//                ->exceptOnForms()
-//                ->displayUsing(function ($user) {
-//                    return $user->name;
-//                }),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
 
             BelongsTo::make('Client')
                 ->searchable()
@@ -155,7 +155,6 @@ class AppraisalJob extends Resource
                 })
                 ->withoutTrashed()
                 ->showCreateRelationButton()
-                ->filterable()
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
@@ -183,9 +182,9 @@ class AppraisalJob extends Resource
 
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options(AppraisalType::pluck('name', 'id'))
-                ->searchable()
                 ->required()
                 ->hideFromIndex()
+                ->filterable()
                 ->displayUsingLabels(),
 
             BelongsTo::make('Appraisal Type', 'appraisalType', \App\Nova\AppraisalType::class)
@@ -193,14 +192,19 @@ class AppraisalJob extends Resource
                 ->exceptOnForms()
                 ->hideFromIndex()
                 ->hideFromDetail()
-                ->filterable()
                 ->displayUsing(function ($appraisalType) {
                     return $appraisalType->name;
                 }),
 
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+
             BelongsTo::make('Office')
                 ->searchable()
-                ->filterable()
                 ->exceptOnForms(),
 
             Select::make('Office', 'office_id')
@@ -210,10 +214,18 @@ class AppraisalJob extends Resource
                 ->options(\App\Models\Office::pluck('city', 'id'))
                 ->displayUsingLabels(),
 
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
                 ->exceptOnForms()
-                ->filterable()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -483,7 +495,7 @@ class AppraisalJob extends Resource
                 ->width('1/3')
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
-                }),
+                })->refreshWhenFiltersChange(),
 //            (new AverageAppraisalProcessDuration())
 //                ->width('1/3')
 //                ->canSee(function () use ($request) {

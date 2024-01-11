@@ -20,6 +20,11 @@ class JobPerStatus extends Partition
             $query->from('appraisal_jobs')
                 ->selectRaw('
                     id,
+                    appraiser_id,
+                    office_id,
+                    appraisal_type_id,
+                    reference_number,
+                    client_id,
                     (CASE
                         WHEN is_on_hold THEN "On Hold"
                         ELSE status

@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses\Traits;
 
+use App\Models\AppraisalType;
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\User;
 use Flatroy\FieldProgressbar\FieldProgressbar;
@@ -30,23 +31,6 @@ trait AppraisalJobLensIndex
         return [
             ID::make(Nova::__('ID'), 'id')->sortable(),
 
-//            BelongsTo::make('Created By', 'createdBy', User::class)
-//                ->searchable()
-//                ->exceptOnForms()
-//                ->displayUsing(function ($user) {
-//                    return $user->name;
-//                }),
-
-
-            BelongsTo::make('Client')
-                ->searchable()
-                ->showCreateRelationButton()
-                ->filterable()
-                ->modalSize('3xl')
-                ->displayUsing(function ($client) {
-                    return $client->complete_name;
-                }),
-
             Stack::make('Details', [
                 Line::make('Property Address')
                     ->displayUsing(function ($value) {
@@ -67,32 +51,13 @@ trait AppraisalJobLensIndex
                     })->asSmall(),
             ])->onlyOnIndex(),
 
-            Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(\App\Models\AppraisalType::pluck('name', 'id'))
-                ->searchable()
-                ->hideFromIndex()
-                ->required()
-                ->displayUsingLabels(),
-
-            BelongsTo::make('Appraisal Type', 'appraisalType', \App\Nova\AppraisalType::class)
-                ->searchable()
-                ->exceptOnForms()
-                ->hideFromIndex()
-                ->hideFromDetail()
-                ->filterable()
-                ->displayUsing(function ($appraisalType) {
-                    return $appraisalType->name;
-                }),
-
             BelongsTo::make('Office')
                 ->searchable()
-                ->filterable()
                 ->exceptOnForms(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
                 ->exceptOnForms()
-                ->filterable()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -137,19 +102,33 @@ trait AppraisalJobLensIndex
                 ->withIcons()
                 ->exceptOnForms(),
 
-            FieldProgressbar::make('Progress')
-                ->options([
-//                    'color' => '#40BF55',
-                    'fromColor' => '#FFEA82',
-                    'toColor' => '#40BF55',
-                    'animateColor' => false,
-                ])
-                ->exceptOnForms()
-                ->hideFromIndex(),
-
-            Date::make('Due Date')
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
                 ->hideFromIndex()
-                ->sortable(),
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 
@@ -162,10 +141,10 @@ trait AppraisalJobLensIndex
     public function filters(NovaRequest $request)
     {
         return [
-            (new OfficeFilter())
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                }),
+//            (new OfficeFilter())
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                }),
         ];
     }
 }

@@ -2,11 +2,13 @@
 
 namespace App\Nova\Lenses;
 
+use App\Models\AppraisalType;
 use App\Nova\User;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -86,6 +88,7 @@ class ReviewerInvoice extends Lens
                     'id',
                     'reviewer_id',
                     'appraiser_id',
+                    'appraiser_type_id',
                     'client_id',
                     'office_id',
                     'property_address',
@@ -139,15 +142,12 @@ class ReviewerInvoice extends Lens
                 ->searchable()
                 ->sortable(),
             BelongsTo::make('Appraiser', 'appraiser', User::class)
-                ->filterable()
                 ->searchable()
                 ->sortable(),
             BelongsTo::make('Office')
-                ->filterable()
                 ->searchable()
                 ->sortable(),
             BelongsTo::make('Client')
-                ->filterable()
                 ->searchable()
                 ->sortable(),
             Text::make('Property Address')->sortable(),
@@ -175,6 +175,34 @@ class ReviewerInvoice extends Lens
                     return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->reviewer_commission ?? 0) / 100), 2);
                 })
                 ->sortable(),
+
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Nova\Lenses;
 
 use App\Enums\AppraisalJobStatus;
+use App\Models\AppraisalType;
 use App\Nova\Lenses\Traits\AppraisalJobLensIndex;
 use App\Nova\User;
 use Flatroy\FieldProgressbar\FieldProgressbar;
@@ -90,18 +91,9 @@ class CompletedAppraisalJobs extends Lens
         return [
             ID::make(Nova::__('ID'), 'id')->sortable(),
 
-//            BelongsTo::make('Created By', 'createdBy', User::class)
-//                ->searchable()
-//                ->exceptOnForms()
-//                ->displayUsing(function ($user) {
-//                    return $user->name;
-//                }),
-
-
             BelongsTo::make('Client')
                 ->searchable()
                 ->showCreateRelationButton()
-                ->filterable()
                 ->modalSize('3xl')
                 ->displayUsing(function ($client) {
                     return $client->complete_name;
@@ -127,32 +119,22 @@ class CompletedAppraisalJobs extends Lens
                     })->asSmall(),
             ])->onlyOnIndex(),
 
-            Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(\App\Models\AppraisalType::pluck('name', 'id'))
-                ->searchable()
-                ->hideFromIndex()
-                ->required()
-                ->displayUsingLabels(),
-
             BelongsTo::make('Appraisal Type', 'appraisalType', \App\Nova\AppraisalType::class)
                 ->searchable()
                 ->exceptOnForms()
                 ->hideFromIndex()
                 ->hideFromDetail()
-                ->filterable()
                 ->displayUsing(function ($appraisalType) {
                     return $appraisalType->name;
                 }),
 
             BelongsTo::make('Office')
                 ->searchable()
-                ->filterable()
                 ->exceptOnForms(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
                 ->searchable()
                 ->exceptOnForms()
-                ->filterable()
                 ->displayUsing(function ($user) {
                     return $user->name;
                 }),
@@ -197,18 +179,36 @@ class CompletedAppraisalJobs extends Lens
                 ->withIcons()
                 ->exceptOnForms(),
 
-            FieldProgressbar::make('Progress')
-                ->options([
-//                    'color' => '#40BF55',
-                    'fromColor' => '#FFEA82',
-                    'toColor' => '#40BF55',
-                    'animateColor' => false,
-                ])
-                ->exceptOnForms()
-                ->hideFromIndex(),
-
             Date::make('Completed Date', 'completed_at')
                 ->sortable(),
+
+            //filters
+            Select::make('Appraisal Type', 'appraisal_type_id')
+                ->options(AppraisalType::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Office', 'office_id')
+                ->options(\App\Models\Office::pluck('title', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
+            Select::make('Client', 'client_id')
+                ->options(\App\Models\Client::pluck('name', 'id'))
+                ->required()
+                ->hideFromIndex()
+                ->filterable()
+                ->displayUsingLabels(),
         ];
     }
 
