@@ -3,6 +3,8 @@
 namespace App\Observers;
 
 use App\Models\User;
+use App\Notifications\UserInvited;
+use Illuminate\Support\Facades\Password;
 
 class UserObserver
 {
@@ -26,5 +28,7 @@ class UserObserver
         if (!$user->roles()->count()) {
             $user->assignRole('appraiser');
         }
+
+        $user->notify(new \App\Notifications\UserInvited());
     }
 }
