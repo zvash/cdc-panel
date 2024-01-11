@@ -490,7 +490,7 @@ class AppraisalJob extends Resource
                 ->defaultRange('7')
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
-                }),
+                })->refreshWhenFiltersChange(),
             (new JobPerStatus())
                 ->width('1/3')
                 ->canSee(function () use ($request) {
@@ -515,7 +515,7 @@ class AppraisalJob extends Resource
                 ->width('full')
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
-                }),
+                })->refreshWhenFiltersChange(),
         ];
     }
 
