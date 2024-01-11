@@ -50,7 +50,7 @@ class JobPerStatus extends Partition
 
     public function name()
     {
-        return 'This Month Jobs Per Status';
+        return 'Monthly Job Status';
     }
 
     /**
