@@ -21,8 +21,10 @@ use App\Observers\AppraisalJobAssignmentObserver;
 use App\Observers\AppraisalJobObserver;
 use App\Observers\UserObserver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Laravel\Nova\Events\ServingNova;
 use Laravel\Nova\Menu\Menu;
 use Laravel\Nova\Menu\MenuItem;
 use Laravel\Nova\Menu\MenuSection;
@@ -49,7 +51,17 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
         Nova::withBreadcrumbs();
 
-        Nova::initialPath('/resources/appraisal-jobs/lens/pending-appraisal-jobs');
+        Nova::serving(function (ServingNova $event) {
+            /** @var \App\Models\User|null $user */
+            $user = $event->request->user();
+
+            if (is_null($user)) {
+                return;
+            }
+            if (!$user->hasManagementAccess()) {
+                Nova::initialPath('/resources/appraisal-jobs/lens/pending-appraisal-jobs');
+            }
+        });
 
         Nova::userTimezone(function (Request $request) {
             return $request->user()?->timezone;
@@ -61,6 +73,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         });
 
         Nova::mainMenu(fn($request) => [
+
+            MenuSection::dashboard(\App\Nova\Dashboards\Main::class)->canSee(function ($request) {
+                return $request->user()->hasManagementAccess();
+            })->icon('chart-bar'),
 
             MenuSection::make('Appraisal Jobs', [
                 MenuItem::resource(AppraisalJob::class),
