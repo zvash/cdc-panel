@@ -2,7 +2,6 @@
 
 namespace App\Nova;
 
-use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
@@ -12,7 +11,6 @@ use App\Nova\Actions\PutJobInReview;
 use App\Nova\Actions\RejectAfterReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
-use App\Nova\Filters\OfficeFilter;
 use App\Nova\Lenses\AppraiserInvoice;
 use App\Nova\Lenses\AppraiserMonthlyInvoice;
 use App\Nova\Lenses\AssignedAppraisalJobs;
@@ -30,12 +28,9 @@ use App\Nova\Metrics\AverageJobCreationToCompletionDuration;
 use App\Nova\Metrics\AverageReviewerProcessDuration;
 use App\Nova\Metrics\AverageWorkOnJobDuration;
 use App\Nova\Metrics\CompletedJobsPerDay;
-use App\Nova\Metrics\CompletedJobsPerMonth;
 use App\Nova\Metrics\JobPerStatus;
-use App\Nova\Repeater\AppraisalJobFileLine;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
-use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Files;
 use Flatroy\FieldProgressbar\FieldProgressbar;
@@ -247,8 +242,7 @@ class AppraisalJob extends Resource
 
             Files::make('Documents', 'job_files')
                 ->hideFromIndex()
-                ->creationRules('required', 'array', 'min:1')
-                ->updateRules('nullable', 'array', 'min:1')
+                ->rules('required')
                 ->setFileName(function ($originalFilename, $extension, $model) {
                     return $originalFilename . '-' . time() . '.' . $extension;
                 })
@@ -348,6 +342,8 @@ class AppraisalJob extends Resource
             Select::make('Province (for tax)', 'province')
                 ->searchable()
                 ->hideFromIndex()
+                ->required()
+                ->rules('required')
                 ->options(\App\Models\Province::pluck('name', 'name'))
                 ->displayUsingLabels(),
 

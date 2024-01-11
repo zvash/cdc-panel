@@ -25,10 +25,11 @@ class UserObserver
 
     public function created(User $user)
     {
-        if (!$user->roles()->count()) {
-            $user->assignRole('appraiser');
+        if ($user->id > 6) {
+            if (!$user->roles()->count()) {
+                $user->assignRole('appraiser');
+            }
+            $user->notify(new \App\Notifications\UserInvited());
         }
-
-        $user->notify(new \App\Notifications\UserInvited());
     }
 }
