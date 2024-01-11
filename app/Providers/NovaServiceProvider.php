@@ -181,6 +181,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             MenuSection::make('Offices', [
                 MenuItem::resource(Office::class),
             ])->icon('office-building'),
+
+            MenuSection::make('Support', [
+                MenuItem::externalLink('Help', 'mailto:hamid@offerland.ca'),
+            ])->icon('support'),
         ]);
 
         Nova::script('lock-light-theme', __DIR__ . '/../../public/theme.js');

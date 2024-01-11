@@ -67,7 +67,7 @@ class RejectAfterReview extends Action
             if ($fields->file) {
                 $file = $fields->file;
                 $fileName = mt_rand(1000000, 9999999) . '-' . $file->getClientOriginalName();
-                $path = $file->storeAs('review-rejected-files', $fileName, ['disk' => 'local']);
+                $path = $file->storeAs('review-rejected-files', $fileName, ['disk' => 'media']);
             }
 
             AppraisalJobRejection::query()

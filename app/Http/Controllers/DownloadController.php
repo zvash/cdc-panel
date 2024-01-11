@@ -6,6 +6,7 @@ use App\Models\AppraisalJobFile;
 use App\Models\AppraisalJobRejection;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DownloadController extends Controller
 {
@@ -32,10 +33,7 @@ class DownloadController extends Controller
                     ->exists()
             )
         ) {
-            return response()->download(
-                storage_path('app/' . $appraisalJobFile->file),
-                explode('/', $appraisalJobFile->file)[1]
-            );
+            return Storage::disk('media')->download($appraisalJobFile->file);
         } else {
             abort(403);
         }
@@ -58,10 +56,7 @@ class DownloadController extends Controller
                     ->exists()
             )
         ) {
-            return response()->download(
-                storage_path('app/' . $appraisalJobRejection->file),
-                explode('/', $appraisalJobRejection->file)[1]
-            );
+            return Storage::disk('media')->download($appraisalJobRejection->file);
         } else {
             abort(403);
         }

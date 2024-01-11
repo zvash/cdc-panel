@@ -98,7 +98,7 @@ class AppraisalJobFile extends Resource
                 })->asHtml(),
 
             File::make('File')
-                ->disk('local')
+                ->disk('media')
                 ->path('appraisal-job-files')
                 ->displayUsing(function ($file) {
                     return explode('/', $file)[1];

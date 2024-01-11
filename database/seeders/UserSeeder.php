@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         $this->users()->each(function ($user) {
             $user = User::create(array_merge($user, [
                 'password' => bcrypt($user['password']),
-                'avatar' => $this->store('users', $user['avatar'] ?? null),
+                'avatar' => $this->store('users', $user['avatar'] ?? null, 's3'),
             ]));
             if ($user->id == 1) {
                 $user->assignRole('Supervisor');

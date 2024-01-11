@@ -31,7 +31,7 @@ class AddFile extends Action
         /** @var UploadedFile $file */
         $file = $fields->file;
         $fileName = mt_rand(1000000, 9999999) . '-' . $file->getClientOriginalName();
-        $path = $file->storeAs('appraisal-job-files', $fileName, ['disk' => 'local']);
+        $path = $file->storeAs('appraisal-job-files', $fileName, ['disk' => 'media']);
         $appraisalJob->files()->create([
             'user_id' => auth()->user()->id,
             'appraisal_job_id' => $appraisalJob->id,

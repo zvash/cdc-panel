@@ -37,6 +37,7 @@ use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Digitalcloud\ZipCodeNova\ZipCode;
 use Dniccum\PhoneNumber\PhoneNumber;
+use Ebess\AdvancedNovaMediaLibrary\Fields\Files;
 use Flatroy\FieldProgressbar\FieldProgressbar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -244,19 +245,16 @@ class AppraisalJob extends Resource
                     return '-';
                 })->asHtml(),
 
-            File::make('File')
-                ->disk('local')
-                ->path('appraisal-job-files')
+            Files::make('Documents', 'job_files')
+                ->hideFromIndex()
+                ->creationRules('required', 'array', 'min:1')
+                ->updateRules('nullable', 'array', 'min:1')
+                ->setFileName(function ($originalFilename, $extension, $model) {
+                    return $originalFilename . '-' . time() . '.' . $extension;
+                })
                 ->required()
-                ->creationRules('required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp')
-                ->updateRules('nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,txt,jpg,jpeg,png,webp'),
+                ->singleImageRules('mimes:pdf,doc,docx,txt,jpg,jpeg,png,webp'),
 
-//            Repeater::make('Files', 'files')
-//                ->uniqueField('id')
-//                ->rules('')
-//                ->repeatables([
-//                    AppraisalJobFileLine::make()
-//                ])->asHasMany(AppraisalJobFile::class),
 
             Badge::make('Status')->map([
                 \App\Enums\AppraisalJobStatus::Pending->value => 'danger',
@@ -728,15 +726,20 @@ class AppraisalJob extends Resource
         }
         $user = $request->user();
 
-        return ($user->hasManagementAccess()
-                && in_array($this->resource->status, [
-                    \App\Enums\AppraisalJobStatus::Pending->value,
-                    \App\Enums\AppraisalJobStatus::Assigned->value,
-                ]))
-            || ($user->isAppraiser()
-                && !$this->resource->is_on_hold
-                && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
-                && $this->resource->appraiser_id == $user->id);
+        return $user->isAppraiser()
+            && !$this->resource->is_on_hold
+            && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+            && $this->resource->appraiser_id == $user->id;
+
+//        return ($user->hasManagementAccess()
+//                && in_array($this->resource->status, [
+//                    \App\Enums\AppraisalJobStatus::Pending->value,
+//                    \App\Enums\AppraisalJobStatus::Assigned->value,
+//                ]))
+//            || ($user->isAppraiser()
+//                && !$this->resource->is_on_hold
+//                && $this->resource->status == \App\Enums\AppraisalJobStatus::InProgress->value
+//                && $this->resource->appraiser_id == $user->id);
     }
 
     private function userIsTheJobsReviewerAndJobIsInReview(NovaRequest $request): bool

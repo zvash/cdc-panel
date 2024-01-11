@@ -103,7 +103,7 @@ class User extends Resource
             ID::make()->sortable(),
 
             Avatar::make('Avatar')
-                ->disk('public')
+                ->disk('s3')
                 ->path('users')
                 ->prunable()
                 ->deletable()

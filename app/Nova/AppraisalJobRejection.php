@@ -92,7 +92,7 @@ class AppraisalJobRejection extends Resource
                 })->asHtml(),
 
             File::make('File')
-                ->disk('local')
+                ->disk('media')
                 ->path('review-rejected-files')
                 ->displayUsing(function ($file) {
                     if (!$file) {
