@@ -11,7 +11,7 @@ class AverageJobCreationToCompletionDuration extends Trend
 {
     public function name()
     {
-        return 'Average Job Cycle Duration';
+        return 'Average Appraisal Duration';
     }
 
     /**

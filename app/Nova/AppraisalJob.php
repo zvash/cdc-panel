@@ -484,21 +484,21 @@ class AppraisalJob extends Resource
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
                 }),
-            (new AverageAppraisalProcessDuration())
-                ->width('1/3')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                }),
-            (new AverageReviewerProcessDuration())
-                ->width('1/3')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                }),
-            (new AverageWorkOnJobDuration())
-                ->width('1/3')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                }),
+//            (new AverageAppraisalProcessDuration())
+//                ->width('1/3')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                }),
+//            (new AverageReviewerProcessDuration())
+//                ->width('1/3')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                }),
+//            (new AverageWorkOnJobDuration())
+//                ->width('1/3')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                }),
             (new AverageJobCreationToCompletionDuration())
                 ->width('full')
                 ->canSee(function () use ($request) {
