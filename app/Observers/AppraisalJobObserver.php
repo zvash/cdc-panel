@@ -5,6 +5,8 @@ namespace App\Observers;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalJobChangeLog;
 use App\Models\AppraisalJobFile;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class AppraisalJobObserver
 {
@@ -18,10 +20,10 @@ class AppraisalJobObserver
         }
     }
 
-    public function saved(AppraisalJob $appraisalJob)
-    {
-        $this->handleAppraiserAssignment($appraisalJob);
-    }
+//    public function saved(AppraisalJob $appraisalJob)
+//    {
+//        $this->handleAppraiserAssignment($appraisalJob);
+//    }
 
     public function created(AppraisalJob $appraisalJob)
     {
@@ -96,7 +98,6 @@ class AppraisalJobObserver
                 ]);
             }
         }
-
     }
 
     private
