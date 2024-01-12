@@ -18,6 +18,11 @@ class AppraisalJobObserver
         }
     }
 
+    public function saved(AppraisalJob $appraisalJob)
+    {
+        $this->handleAppraiserAssignment($appraisalJob);
+    }
+
     public function created(AppraisalJob $appraisalJob)
     {
         $this->handleChangeLog($appraisalJob);
@@ -77,6 +82,19 @@ class AppraisalJobObserver
                 'action' => $secondLatestLog->action,
                 'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser()}",
             ]);
+        } else if ($action == 'reassigned') {
+            $changeLog->update([
+                'duration' => 0,
+            ]);
+            if (!$appraisalJob->is_on_hold) {
+                $secondLatestLog = $this->getLatestValidLogBeforeReassigning($appraisalJob);
+                AppraisalJobChangeLog::query()->create([
+                    'appraisal_job_id' => $appraisalJob->id,
+                    'user_id' => auth()->user()->id,
+                    'action' => $secondLatestLog->action,
+                    'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser()}",
+                ]);
+            }
         }
 
     }
@@ -109,13 +127,22 @@ class AppraisalJobObserver
             ->latest()->first();
     }
 
-    private
-    function getLatestValidLogBeforePuttingTheJobOnHold(AppraisalJob $appraisalJob)
+    private function getLatestValidLogBeforePuttingTheJobOnHold(AppraisalJob $appraisalJob)
     {
         $putOnHoldId = $appraisalJob->changeLogs()->where('action', 'put on hold')->latest()->first()->id;
         return $appraisalJob->changeLogs()
             ->where('id', '<', $putOnHoldId)
             ->whereNotIn('action', ['accepted', 'declined'])
+            ->latest()
+            ->first();
+    }
+
+    private function getLatestValidLogBeforeReassigning(AppraisalJob $appraisalJob)
+    {
+        $reassignId = $appraisalJob->changeLogs()->where('action', 'reassign')->latest()->first()->id;
+        return $appraisalJob->changeLogs()
+            ->where('id', '<', $reassignId)
+            ->whereNotIn('action', ['accepted', 'declined', 'reassign'])
             ->latest()
             ->first();
     }
@@ -140,10 +167,12 @@ class AppraisalJobObserver
         }
 
         if (array_key_exists('appraiser_id', $changedFields)) {
-            if ($changedFields['appraiser_id']['new_value'] == null) {
-                return 'removed from appraiser';
+            if (
+                $changedFields['appraiser_id']['new_value'] != null
+                && $changedFields['appraiser_id']['old_value'] != null
+            ) {
+                return 'reassigned';
             }
-            return 'assigned to appraiser';
         }
 
         if (array_key_exists('status', $changedFields)) {
