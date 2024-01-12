@@ -23,7 +23,23 @@ class AppraisalJobObserver
         $this->handleChangeLog($appraisalJob);
     }
 
-    private function handleChangeLog(AppraisalJob $appraisalJob): void
+    private function handleAppraiserAssignment(AppraisalJob $appraisalJob)
+    {
+        $changedFields = $this->getChangedFields($appraisalJob);
+        if (array_key_exists('appraiser_id', $changedFields)) {
+            if ($changedFields['appraiser_id']['old_value'] == null) {
+                $appraisalJob->setAttribute('status', \App\Enums\AppraisalJobStatus::InProgress)->save();
+                return;
+            }
+            if ($changedFields['appraiser_id']['new_value'] == null) {
+                $appraisalJob->setAttribute('status', \App\Enums\AppraisalJobStatus::Pending)->save();
+                return;
+            }
+        }
+    }
+
+    private
+    function handleChangeLog(AppraisalJob $appraisalJob): void
     {
         $changedFields = $this->getChangedFields($appraisalJob);
         if (
@@ -65,7 +81,8 @@ class AppraisalJobObserver
 
     }
 
-    private function getChangedFields(AppraisalJob $appraisalJob): array
+    private
+    function getChangedFields(AppraisalJob $appraisalJob): array
     {
         $changedFields = [];
         foreach ($appraisalJob->getDirty() as $field => $value) {
@@ -77,20 +94,23 @@ class AppraisalJobObserver
         return $changedFields;
     }
 
-    private function getLinkToTheAuthenticatedUser(): string
+    private
+    function getLinkToTheAuthenticatedUser(): string
     {
         $user = auth()->user();
         return "<a href='/resources/users/{$user->id}' target='_blank'>{$user->name}</a>";
     }
 
-    private function getLatestChangeLog(AppraisalJob $appraisalJob)
+    private
+    function getLatestChangeLog(AppraisalJob $appraisalJob)
     {
         return $appraisalJob->changeLogs()
             ->whereNotIn('action', ['accepted', 'declined'])
             ->latest()->first();
     }
 
-    private function getLatestValidLogBeforePuttingTheJobOnHold(AppraisalJob $appraisalJob)
+    private
+    function getLatestValidLogBeforePuttingTheJobOnHold(AppraisalJob $appraisalJob)
     {
         $putOnHoldId = $appraisalJob->changeLogs()->where('action', 'put on hold')->latest()->first()->id;
         return $appraisalJob->changeLogs()
@@ -100,14 +120,16 @@ class AppraisalJobObserver
             ->first();
     }
 
-    private function updateLastChangeLog(?AppraisalJobChangeLog $latestLog)
+    private
+    function updateLastChangeLog(?AppraisalJobChangeLog $latestLog)
     {
         $latestLog?->update([
             'duration' => \Carbon\Carbon::now()->diffInSeconds($latestLog->created_at),
         ]);
     }
 
-    private function determineAction(array $changedFields): string
+    private
+    function determineAction(array $changedFields): string
     {
         if (array_key_exists('is_on_hold', $changedFields)) {
             if ($changedFields['is_on_hold']['new_value']) {
@@ -116,6 +138,14 @@ class AppraisalJobObserver
                 return 'removed from hold';
             }
         }
+
+        if (array_key_exists('appraiser_id', $changedFields)) {
+            if ($changedFields['appraiser_id']['new_value'] == null) {
+                return 'removed from appraiser';
+            }
+            return 'assigned to appraiser';
+        }
+
         if (array_key_exists('status', $changedFields)) {
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Assigned) {
                 return 'assigned';
@@ -124,10 +154,16 @@ class AppraisalJobObserver
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'sent back to pending when rejected';
                 }
+                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::InProgress->value) {
+                    return 'sent back to pending when removed assignment';
+                }
             }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'put in progress';
+                }
+                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Pending->value) {
+                    return 'assigned and put in progress';
                 }
                 return 'rejected after review';
             }

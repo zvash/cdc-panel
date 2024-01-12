@@ -143,7 +143,8 @@ class AppraisalJob extends Resource
 
             Select::make('Client', 'client_id')
                 ->options(\App\Models\Client::pluck('name', 'id'))
-                ->required()
+                ->exceptOnForms()
+                ->hideFromDetail()
                 ->hideFromIndex()
                 ->filterable()
                 ->displayUsingLabels(),
@@ -198,7 +199,8 @@ class AppraisalJob extends Resource
 
             Select::make('Office', 'office_id')
                 ->options(\App\Models\Office::pluck('title', 'id'))
-                ->required()
+                ->exceptOnForms()
+                ->hideFromDetail()
                 ->hideFromIndex()
                 ->filterable()
                 ->displayUsingLabels(),
@@ -214,13 +216,29 @@ class AppraisalJob extends Resource
                 ->options(\App\Models\Office::pluck('city', 'id'))
                 ->displayUsingLabels(),
 
-            Select::make('Appraiser', 'appraiser_id')
+            //for filtering
+            Select::make('Appraisers', 'appraiser_id')
                 ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
                     return $roles->whereIn('name', ['Appraiser']);
                 })->pluck('name', 'id')->toArray())
-                ->required()
-                ->hideFromIndex()
                 ->filterable()
+                ->exceptOnForms()
+                ->hideFromDetail()
+                ->hideFromIndex()
+                ->displayUsingLabels(),
+
+            Select::make('Appraiser', 'appraiser_id')
+                ->options(\App\Models\User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray())
+                ->searchable()
+                ->onlyOnForms()
+                ->displayUsingLabels(),
+
+            Select::make('Reviewer', 'reviewer_id')
+                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
+                    return $roles->whereIn('name', ['Appraiser']);
+                })->pluck('name', 'id')->toArray())
+                ->searchable()
+                ->onlyOnForms()
                 ->displayUsingLabels(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
@@ -359,21 +377,6 @@ class AppraisalJob extends Resource
                 ->options(\App\Models\Province::pluck('name', 'name'))
                 ->displayUsingLabels(),
 
-//            Number::make('Tax (%)', 'tax')
-//                ->min(0)
-//                ->max(100)
-//                ->step(0.01)
-//                ->rules('nullable', 'numeric', 'min:0', 'max:100')
-//                ->hideFromIndex()
-//                ->nullable(),
-
-//            Currency::make('Fee Quoted')
-//                ->min(0)
-//                ->max(999999.99)
-//                ->step(0.01)
-//                ->hideFromIndex()
-//                ->nullable(),
-
             Text::make('Fee Quoted')
                 ->hideFromIndex()
                 ->nullable()
@@ -484,39 +487,7 @@ class AppraisalJob extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        return [
-//            (new CompletedJobsPerDay())
-//                ->width('2/3')
-//                ->defaultRange('7')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                })->refreshWhenFiltersChange(),
-//            (new JobPerStatus())
-//                ->width('1/3')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                })->refreshWhenFiltersChange(),
-//            (new AverageAppraisalProcessDuration())
-//                ->width('1/3')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                }),
-//            (new AverageReviewerProcessDuration())
-//                ->width('1/3')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                }),
-//            (new AverageWorkOnJobDuration())
-//                ->width('1/3')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                }),
-//            (new AverageJobCreationToCompletionDuration())
-//                ->width('full')
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->hasManagementAccess();
-//                })->refreshWhenFiltersChange(),
-        ];
+        return [];
     }
 
     /**
