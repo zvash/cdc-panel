@@ -276,8 +276,8 @@ class AppraisalJob extends Resource
                 ->setFileName(function ($originalFilename, $extension, $model) {
                     return $originalFilename . '-' . time() . '.' . $extension;
                 })
-                ->required()
-                ->singleImageRules('mimes:pdf,doc,docx,txt,jpg,jpeg,png,webp'),
+                ->required(),
+                //->singleImageRules('mimes:pdf,doc,docx,txt,jpg,jpeg,png,webp'),
 
 
             Badge::make('Status')->map([
