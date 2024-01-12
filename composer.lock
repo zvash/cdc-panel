@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4bc5df520961616b80e6f5e34805f6f8",
+    "content-hash": "ac93d33c207b788c579f26630abb8b41",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -391,6 +391,61 @@
                 "source": "https://github.com/dflydev/dflydev-dot-access-data/tree/v3.0.2"
             },
             "time": "2022-10-27T11:44:00+00:00"
+        },
+        {
+            "name": "digital-creative/nova-dashboard",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dcasia/nova-dashboard.git",
+                "reference": "29c4b93fe05619a1dd08da66ca60da234d68469a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dcasia/nova-dashboard/zipball/29c4b93fe05619a1dd08da66ca60da234d68469a",
+                "reference": "29c4b93fe05619a1dd08da66ca60da234d68469a",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": "^4.28.0",
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DigitalCreative\\NovaDashboard\\NovaDashboardServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DigitalCreative\\NovaDashboard\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "The missing dashboard for nova.",
+            "keywords": [
+                "Flexible",
+                "dashboard",
+                "laravel",
+                "nova",
+                "widgets"
+            ],
+            "support": {
+                "issues": "https://github.com/dcasia/nova-dashboard/issues",
+                "source": "https://github.com/dcasia/nova-dashboard/tree/v1.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/milewski",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-10-28T08:24:08+00:00"
         },
         {
             "name": "digitalcloud/zipcode-nova",

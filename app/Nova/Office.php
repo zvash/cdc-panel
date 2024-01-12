@@ -99,26 +99,26 @@ class Office extends Resource
      */
     public function cards(NovaRequest $request)
     {
-        $provinces = \App\Models\Province::query()
-            ->whereRaw('name in (select province from offices)')
-            ->pluck('name', 'id');
-        $completedPerProvinces = [];
-        foreach ($provinces as $provinceId => $provinceName) {
-            $completedPerProvinces[] = (new CompletedJobsPerDay())
-                ->width('1/3')
-                ->setProvince($provinceId, $provinceName)
-                ->canSee(function ($request) {
-                    return $request->user()->hasManagementAccess();
-                })
-                ->defaultRange('7');
-        }
+//        $provinces = \App\Models\Province::query()
+//            ->whereRaw('name in (select province from offices)')
+//            ->pluck('name', 'id');
+//        $completedPerProvinces = [];
+//        foreach ($provinces as $provinceId => $provinceName) {
+//            $completedPerProvinces[] = (new CompletedJobsPerDay())
+//                ->width('1/3')
+//                ->setProvince($provinceId, $provinceName)
+//                ->canSee(function ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                })
+//                ->defaultRange('7');
+//        }
         return array_merge([
             (new CompletedJobsPerDay())
                 ->width('2/3')
                 ->setSource('office_id')
                 ->defaultRange('7')
                 ->onlyOnDetail(),
-        ], $completedPerProvinces);
+        ], []);
     }
 
     /**

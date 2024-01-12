@@ -3,20 +3,34 @@
 namespace App\Nova\Metrics;
 
 use App\Models\AppraisalJob;
+use App\Traits\Filters\FilterAware;
+use App\Traits\Filters\FilterAwareTrend;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Trend;
+use Laravel\Nova\Metrics\TrendDateExpressionFactory;
 use Laravel\Nova\Metrics\TrendResult;
 use Laravel\Nova\Nova;
 
 class CompletedJobsPerDay extends Trend
 {
+    use FilterAware, FilterAwareTrend;
 
     private $source = '';
 
     private $provinceId = 0;
 
     private $provinceName = '';
+
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
+    }
 
     public function setProvince($provinceId, $provinceName)
     {
@@ -42,14 +56,25 @@ class CompletedJobsPerDay extends Trend
      */
     public function calculate(NovaRequest $request)
     {
+        $filters = $this->extractFilters($request);
         $query = AppraisalJob::query()->whereNotNull('completed_at');
         if ($this->source && $request->resourceId) {
             $query->where($this->source, $request->resourceId);
         }
         if ($this->provinceId) {
+            $query = $this->applyFilter($query, $filters, [
+                'created_at',
+                'completed_at',
+                'client_id',
+                'appraisal_type_id'
+            ]);
             $query->join('offices', 'offices.id', '=', 'appraisal_jobs.office_id')
                 ->whereRaw("offices.province = '{$this->provinceName}'");
+        } else {
+            $query = $this->applyFilter($query, $filters);
         }
+
+
         return $this->countByDays($request, $query, 'completed_at')
             ->suffix('job');
     }
@@ -91,6 +116,10 @@ class CompletedJobsPerDay extends Trend
         if ($this->provinceName) {
             return 'Completed Daily Job in ' . $this->provinceName;
         }
+        $filters = $this->extractFilters(request());
+        if ($filters) {
+            return 'Completed Daily Job (Filtered)';
+        }
         return 'Completed Daily Job';
     }
 
@@ -107,6 +136,7 @@ class CompletedJobsPerDay extends Trend
         if ($this->source) {
             return 'completed-job-per-day-' . str_replace('_id', '', $this->source);
         }
+
         return 'completed-job-per-day';
     }
 }

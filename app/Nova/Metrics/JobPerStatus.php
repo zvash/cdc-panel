@@ -3,11 +3,15 @@
 namespace App\Nova\Metrics;
 
 use App\Models\AppraisalJob;
+use App\Traits\Filters\FilterAware;
+use Illuminate\Support\Facades\Log;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Partition;
 
 class JobPerStatus extends Partition
 {
+    use FilterAware;
+
     /**
      * Calculate the value of the metric.
      *
@@ -24,6 +28,7 @@ class JobPerStatus extends Partition
                     office_id,
                     appraisal_type_id,
                     reference_number,
+                    completed_at,
                     client_id,
                     (CASE
                         WHEN is_on_hold THEN "On Hold"
@@ -31,7 +36,13 @@ class JobPerStatus extends Partition
                     END ) as status,
                     created_at
                 ');
-        }, 'appraisal_jobs')->whereRaw('created_at >= CAST(DATE_FORMAT(NOW() ,"%Y-%m-01") as DATE)');
+        }, 'appraisal_jobs');
+
+        $filters = $this->extractFilters($request);
+        $this->applyFilter($query, $filters);
+        if (!$this->hasTimeBoundFilter($filters)) {
+            $query = $query->whereRaw('created_at >= CAST(DATE_FORMAT(NOW() ,"%Y-%m-01") as DATE)');
+        }
         return $this->count($request, $query, 'status')
             ->colors([
                 'On Hold' => 'rgb(137,137,137)',

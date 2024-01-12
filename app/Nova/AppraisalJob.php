@@ -485,17 +485,17 @@ class AppraisalJob extends Resource
     public function cards(NovaRequest $request)
     {
         return [
-            (new CompletedJobsPerDay())
-                ->width('2/3')
-                ->defaultRange('7')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                })->refreshWhenFiltersChange(),
-            (new JobPerStatus())
-                ->width('1/3')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                })->refreshWhenFiltersChange(),
+//            (new CompletedJobsPerDay())
+//                ->width('2/3')
+//                ->defaultRange('7')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                })->refreshWhenFiltersChange(),
+//            (new JobPerStatus())
+//                ->width('1/3')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                })->refreshWhenFiltersChange(),
 //            (new AverageAppraisalProcessDuration())
 //                ->width('1/3')
 //                ->canSee(function () use ($request) {
@@ -511,11 +511,11 @@ class AppraisalJob extends Resource
 //                ->canSee(function () use ($request) {
 //                    return $request->user()->hasManagementAccess();
 //                }),
-            (new AverageJobCreationToCompletionDuration())
-                ->width('full')
-                ->canSee(function () use ($request) {
-                    return $request->user()->hasManagementAccess();
-                })->refreshWhenFiltersChange(),
+//            (new AverageJobCreationToCompletionDuration())
+//                ->width('full')
+//                ->canSee(function () use ($request) {
+//                    return $request->user()->hasManagementAccess();
+//                })->refreshWhenFiltersChange(),
         ];
     }
 

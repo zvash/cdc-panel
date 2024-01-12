@@ -3,12 +3,15 @@
 namespace App\Nova\Metrics;
 
 use App\Models\AppraisalJob;
+use App\Traits\Filters\FilterAware;
+use App\Traits\Filters\FilterAwareTrend;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Trend;
 use Laravel\Nova\Nova;
 
 class AverageJobCreationToCompletionDuration extends Trend
 {
+    use FilterAware, FilterAwareTrend;
     public function name()
     {
         return 'Average Appraisal Duration';
@@ -36,6 +39,10 @@ class AverageJobCreationToCompletionDuration extends Trend
                     (UNIX_TIMESTAMP(completed_at) - UNIX_TIMESTAMP(created_at)) as duration
                 ')->whereNotNull('completed_at');
         }, 'appraisal_jobs');
+
+        $filters = $this->extractFilters($request);
+        $query = $this->applyFilter($query, $filters);
+
         return $this->averageByDays($request, $query, 'duration', 'completed_at')
             ->transform(function ($value) {
                 return intval($value / 60 / 60);
