@@ -24,14 +24,7 @@ class DownloadController extends Controller
             $user->hasManagementAccess()
             || $user->id == $appraisalJobFile->user_id
             || $user->id == $appraisalJobFile->appraisalJob->appraiser_id
-            || $user->id == $appraisalJobFile->appraisalJob->reviewer_id
-            || (
-                $appraisalJobFile->appraisalJob->appraiser_id
-                && User::query()
-                    ->where('id', $appraisalJobFile->appraisalJob->appraiser_id)
-                    ->whereJsonContains('reviewers', "{$user->id}")
-                    ->exists()
-            )
+            || $user->id == $appraisalJobFile->appraisalJob->inferReviewer()
         ) {
             return Storage::disk('media')->download($appraisalJobFile->file);
         } else {
@@ -47,14 +40,7 @@ class DownloadController extends Controller
             $user->hasManagementAccess()
             || $user->id == $appraisalJobRejection->user_id
             || $user->id == $appraisalJobRejection->appraisalJob->appraiser_id
-            || $user->id == $appraisalJobRejection->appraisalJob->reviewer_id
-            || (
-                $appraisalJobRejection->appraisalJob->appraiser_id
-                && User::query()
-                    ->where('id', $appraisalJobRejection->appraisalJob->appraiser_id)
-                    ->whereJsonContains('reviewers', "{$user->id}")
-                    ->exists()
-            )
+            || $user->id == $appraisalJobRejection->appraisalJob->inferReviewer()
         ) {
             return Storage::disk('media')->download($appraisalJobRejection->file);
         } else {

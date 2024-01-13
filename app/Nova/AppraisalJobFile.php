@@ -51,13 +51,7 @@ class AppraisalJobFile extends Resource
         }
         return $user->hasManagementAccess()
             || $user->id = $this->user_id
-                || (
-                    $this->appraisalJob->appraiser_id
-                    && \App\Models\User::query()
-                        ->where('id', $this->appraisalJob->appraiser_id)
-                        ->whereJsonContains('reviewers', "{$user->id}")
-                        ->exists()
-                );
+                || $this->appraisalJob->inferReviewer() == $user->id;
 
     }
 

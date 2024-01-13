@@ -147,8 +147,14 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                         $user = $request->user();
                         return \App\Models\AppraisalJob::query()
                             ->where('status', AppraisalJobStatus::InReview)
-                            ->whereHas('appraiser', function ($query) use ($user) {
-                                return $query->whereJsonContains('reviewers', "{$user->id}");
+                            ->where(function ($query) use ($user) {
+                                return $query->where('reviewer_id', $user->id)
+                                    ->orWhere(function ($query) use ($user) {
+                                        return $query->whereNull('reviewer_id')
+                                            ->whereHas('appraiser', function ($query) use ($user) {
+                                                return $query->whereJsonContains('reviewers', "{$user->id}");
+                                            });
+                                    });
                             })->count();
                     }, 'info'),
                 MenuItem::lens(AppraisalJob::class, OnHoldAppraisalJobs::class)

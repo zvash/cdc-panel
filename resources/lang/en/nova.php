@@ -57,6 +57,11 @@ return [
             'confirm_button' => 'Yes',
             'cancel_button' => 'Cancel',
         ],
+        'drop_job' => [
+            'confirm_text' => 'Are you sure you want to drop this job?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*

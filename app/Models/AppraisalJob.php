@@ -81,6 +81,20 @@ class AppraisalJob extends Model implements HasMedia
         return $this->hasMany(AppraisalJobFile::class);
     }
 
+    public function inferReviewer()
+    {
+        if ($this->reviewer_id) {
+            return $this->reviewer_id;
+        }
+        if ($this->appraiser_id) {
+            $appraiser = User::query()->find($this->appraiser_id);
+            if ($appraiser && $appraiser->reviewers && is_array($appraiser->reviewers) && count($appraiser->reviewers)) {
+                return $appraiser->reviewers[0] * 1;
+            }
+        }
+        return null;
+    }
+
     public function changeLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(AppraisalJobChangeLog::class);
@@ -95,7 +109,7 @@ class AppraisalJob extends Model implements HasMedia
             return AppraisalJobStatus::InProgress;
         }
         if ($this->status == AppraisalJobStatus::InProgress->value) {
-            if ($this->appraiser_id && User::query()->find($this->appraiser_id)->reviewers) {
+            if ($this->reviewer_id || ($this->appraiser_id && User::query()->find($this->appraiser_id)->reviewers)) {
                 return AppraisalJobStatus::InReview;
             }
             return AppraisalJobStatus::Completed;

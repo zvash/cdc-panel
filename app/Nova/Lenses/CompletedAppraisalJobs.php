@@ -57,8 +57,8 @@ class CompletedAppraisalJobs extends Lens
     /**
      * Get the query builder / paginator for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\LensRequest  $request
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param \Laravel\Nova\Http\Requests\LensRequest $request
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @return mixed
      */
     public static function query(LensRequest $request, $query)
@@ -183,30 +183,32 @@ class CompletedAppraisalJobs extends Lens
                 ->sortable(),
 
             //filters
+            Select::make('Appraiser', 'appraiser_id')
+                ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
+                        return $roles->whereIn('name', ['Appraiser']);
+                    })->pluck('name', 'id')->toArray())
+                ->filterable()
+                ->searchable()
+                ->exceptOnForms()
+                ->hideFromDetail()
+                ->hideFromIndex()
+                ->displayUsingLabels(),
             Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(AppraisalType::pluck('name', 'id'))
-                ->required()
+                ->options([null => '-'] + AppraisalType::pluck('name', 'id')->toArray())
+                ->searchable()
                 ->hideFromIndex()
                 ->filterable()
                 ->displayUsingLabels(),
             Select::make('Office', 'office_id')
-                ->options(\App\Models\Office::pluck('title', 'id'))
-                ->required()
+                ->options([null => '-'] + \App\Models\Office::pluck('title', 'id')->toArray())
                 ->hideFromIndex()
-                ->filterable()
-                ->displayUsingLabels(),
-            Select::make('Appraiser', 'appraiser_id')
-                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
-                    return $roles->whereIn('name', ['Appraiser']);
-                })->pluck('name', 'id')->toArray())
-                ->required()
-                ->hideFromIndex()
+                ->searchable()
                 ->filterable()
                 ->displayUsingLabels(),
             Select::make('Client', 'client_id')
-                ->options(\App\Models\Client::pluck('name', 'id'))
-                ->required()
+                ->options([null => '-'] + \App\Models\Client::pluck('name', 'id')->toArray())
                 ->hideFromIndex()
+                ->searchable()
                 ->filterable()
                 ->displayUsingLabels(),
         ];
@@ -215,7 +217,7 @@ class CompletedAppraisalJobs extends Lens
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -226,7 +228,7 @@ class CompletedAppraisalJobs extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)

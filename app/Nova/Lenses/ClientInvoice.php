@@ -128,10 +128,6 @@ class ClientInvoice extends Lens
             Text::make('Invoice Number', 'invoice_number')->sortable(),
             Text::make('File Number', 'reference_number')->sortable(),
             BelongsTo::make('Appraiser', 'appraiser', User::class)
-                ->filterable(function () {
-                    return auth()->user()->hasManagementAccess();
-                })
-                ->searchable()
                 ->sortable(),
             BelongsTo::make('Office')
                 ->searchable()
@@ -152,22 +148,32 @@ class ClientInvoice extends Lens
                 ->sortable(),
 
             //filters
+            Select::make('Appraiser', 'appraiser_id')
+                ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
+                        return $roles->whereIn('name', ['Appraiser']);
+                    })->pluck('name', 'id')->toArray())
+                ->filterable()
+                ->searchable()
+                ->exceptOnForms()
+                ->hideFromDetail()
+                ->hideFromIndex()
+                ->displayUsingLabels(),
             Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(AppraisalType::pluck('name', 'id'))
-                ->required()
+                ->options([null => '-'] + AppraisalType::pluck('name', 'id')->toArray())
+                ->searchable()
                 ->hideFromIndex()
                 ->filterable()
                 ->displayUsingLabels(),
             Select::make('Office', 'office_id')
-                ->options(\App\Models\Office::pluck('title', 'id'))
-                ->required()
+                ->options([null => '-'] + \App\Models\Office::pluck('title', 'id')->toArray())
                 ->hideFromIndex()
+                ->searchable()
                 ->filterable()
                 ->displayUsingLabels(),
             Select::make('Client', 'client_id')
-                ->options(\App\Models\Client::pluck('name', 'id'))
-                ->required()
+                ->options([null => '-'] + \App\Models\Client::pluck('name', 'id')->toArray())
                 ->hideFromIndex()
+                ->searchable()
                 ->filterable()
                 ->displayUsingLabels(),
         ];

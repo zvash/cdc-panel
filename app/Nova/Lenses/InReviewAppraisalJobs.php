@@ -81,8 +81,14 @@ class InReviewAppraisalJobs extends Lens
                     if ($user->hasManagementAccess()) {
                         return $query;
                     }
-                    return $query->whereHas('appraiser', function ($query) use ($user) {
-                        return $query->whereJsonContains('reviewers', "{$user->id}");
+                    return $query->where(function ($query) use ($user) {
+                        return $query->where('reviewer_id', $user->id)
+                            ->orWhere(function ($query) use ($user) {
+                                return $query->whereNull('reviewer_id')
+                                    ->whereHas('appraiser', function ($query) use ($user) {
+                                        return $query->whereJsonContains('reviewers', "{$user->id}");
+                                    });
+                            });
                     });
                 })
         ));
@@ -97,7 +103,7 @@ class InReviewAppraisalJobs extends Lens
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -108,7 +114,7 @@ class InReviewAppraisalJobs extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -119,7 +125,7 @@ class InReviewAppraisalJobs extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)

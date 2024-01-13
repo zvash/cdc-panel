@@ -17,7 +17,7 @@ class AverageWorkOnJobDuration extends Trend
     /**
      * Calculate the value of the metric.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return mixed
      */
     public function calculate(NovaRequest $request)
@@ -30,7 +30,7 @@ class AverageWorkOnJobDuration extends Trend
                     max(appraisal_job_change_logs.updated_at) updated_at
                 ')
                 ->join('appraisal_jobs', 'appraisal_jobs.id', '=', 'appraisal_job_change_logs.appraisal_job_id')
-                ->whereIn('action', ['put in progress', 'rejected after review', 'submitted for review'])
+                ->whereIn('action', ['put in progress', 'rejected after review', 'submitted for review', 'assigned and put in progress'])
                 ->whereNotNull('appraisal_jobs.completed_at')
                 ->groupBy('appraisal_job_id');
         }, 'appraisal_job_change_logs');

@@ -5,6 +5,7 @@ namespace App\Nova;
 use App\Models\AppraisalType;
 use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
+use App\Nova\Actions\DropAppraisalJob;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\PutJobInReview;
@@ -228,15 +229,15 @@ class AppraisalJob extends Resource
                 ->displayUsingLabels(),
 
             Select::make('Appraiser', 'appraiser_id')
-                ->options(\App\Models\User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray())
+                ->options([null => '-'] + \App\Models\User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray())
                 ->searchable()
                 ->onlyOnForms()
                 ->displayUsingLabels(),
 
             Select::make('Reviewer', 'reviewer_id')
-                ->options(\App\Models\User::query()->whereHas('roles', function ($roles) {
-                    return $roles->whereIn('name', ['Appraiser']);
-                })->pluck('name', 'id')->toArray())
+                ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
+                        return $roles->whereIn('name', ['Appraiser']);
+                    })->pluck('name', 'id')->toArray())
                 ->searchable()
                 ->onlyOnForms()
                 ->displayUsingLabels(),
@@ -316,25 +317,6 @@ class AppraisalJob extends Resource
                 ])
                 ->exceptOnForms()
                 ->hideFromIndex(),
-
-//            BelongsTo::make('Reviewer', 'reviewer', User::class)
-//                ->searchable()
-//                ->exceptOnForms()
-//                ->nullable()
-//                ->hideFromIndex()
-//                ->displayUsing(function ($user) {
-//                    return $user->name;
-//                }),
-
-//            Select::make('Reviewer', 'reviewer_id')
-//                ->options(\App\Models\User::whereHas('roles', function ($roles) {
-//                    return $roles->whereIn('name', ['Appraiser']);
-//                })->pluck('name', 'id')->toArray())
-//                ->rules('nullable', 'exists:users,id')
-//                ->nullable()
-//                ->onlyOnForms()
-//                ->searchable()
-//                ->displayUsingLabels(),
 
             Text::make('File Number', 'reference_number')
                 ->filterable()
@@ -665,6 +647,18 @@ class AppraisalJob extends Resource
                 ->canRun(function () use ($request) {
                     return $this->userIsTheJobsAppraiserAndNextStepIsInReview($request);
                 }),
+            (new DropAppraisalJob())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.drop_job.confirm_text'))
+                ->confirmButtonText(__('nova.actions.drop_job.confirm_button'))
+                ->cancelButtonText(__('nova.actions.drop_job.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->userIsTheJobsAppraiserAndJobIsNotCompleted($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->userIsTheJobsAppraiserAndJobIsNotCompleted($request);
+                }),
         ];
     }
 
@@ -730,16 +724,7 @@ class AppraisalJob extends Resource
         return $user->isAppraiser()
             && !$this->resource->is_on_hold
             && $this->resource->status == \App\Enums\AppraisalJobStatus::InReview->value
-            && (
-                $this->resource->reviewer_id == $user->id
-                || (
-                    $this->resource->appraiser_id
-                    && \App\Models\User::query()
-                        ->where('id', $this->resource->appraiser_id)
-                        ->whereJsonContains('reviewers', "{$user->id}")
-                        ->exists()
-                )
-            );
+            && $user->id == $this->resource->inferReviewer();
     }
 
     /**
@@ -755,6 +740,24 @@ class AppraisalJob extends Resource
         return $user->isAppraiser()
             && !$this->resource->is_on_hold
             && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::InReview
+            && $this->resource->appraiser_id == $user->id;
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function userIsTheJobsAppraiserAndJobIsNotCompleted(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        return $user->isAppraiser()
+            && (
+                $this->resource->status != \App\Enums\AppraisalJobStatus::Completed->value
+                || $this->resource->status != \App\Enums\AppraisalJobStatus::Cancelled->value
+            )
             && $this->resource->appraiser_id == $user->id;
     }
 

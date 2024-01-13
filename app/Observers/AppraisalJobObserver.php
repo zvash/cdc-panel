@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalJobChangeLog;
 use App\Models\AppraisalJobFile;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -20,11 +21,6 @@ class AppraisalJobObserver
         }
     }
 
-//    public function saved(AppraisalJob $appraisalJob)
-//    {
-//        $this->handleAppraiserAssignment($appraisalJob);
-//    }
-
     public function created(AppraisalJob $appraisalJob)
     {
         $this->handleChangeLog($appraisalJob);
@@ -35,22 +31,24 @@ class AppraisalJobObserver
         $changedFields = $this->getChangedFields($appraisalJob);
         if (array_key_exists('appraiser_id', $changedFields)) {
             if ($changedFields['appraiser_id']['old_value'] == null) {
-                $appraisalJob->setAttribute('status', \App\Enums\AppraisalJobStatus::InProgress)->save();
-                return;
+                $appraisalJob->status = \App\Enums\AppraisalJobStatus::InProgress;
+            } else if ($changedFields['appraiser_id']['new_value'] == null) {
+                $appraisalJob->status = \App\Enums\AppraisalJobStatus::Pending;
             }
-            if ($changedFields['appraiser_id']['new_value'] == null) {
-                $appraisalJob->setAttribute('status', \App\Enums\AppraisalJobStatus::Pending)->save();
-                return;
+            if (User::query()->find(auth()->user()->id)->hasManagementAccess()) {
+                $appraisalJob->assignments()
+                    ->where('status', \App\Enums\AppraisalJobAssignmentStatus::Pending->value)
+                    ->delete();
             }
         }
     }
 
-    private
-    function handleChangeLog(AppraisalJob $appraisalJob): void
+    private function handleChangeLog(AppraisalJob $appraisalJob): void
     {
         $changedFields = $this->getChangedFields($appraisalJob);
         if (
             !array_key_exists('is_on_hold', $changedFields)
+            && !array_key_exists('appraiser_id', $changedFields)
             && !array_key_exists('status', $changedFields)
             && !array_key_exists('created_by', $changedFields)
         ) {
@@ -62,6 +60,9 @@ class AppraisalJobObserver
         ) {
             return;
         }
+
+        $this->handleAppraiserAssignment($appraisalJob);
+
         /** @var \App\Models\AppraisalJobChangeLog $latestLog */
         $latestLog = $this->getLatestChangeLog($appraisalJob);
         $this->updateLastChangeLog($latestLog);
@@ -84,19 +85,6 @@ class AppraisalJobObserver
                 'action' => $secondLatestLog->action,
                 'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser()}",
             ]);
-        } else if ($action == 'reassigned') {
-            $changeLog->update([
-                'duration' => 0,
-            ]);
-            if (!$appraisalJob->is_on_hold) {
-                $secondLatestLog = $this->getLatestValidLogBeforeReassigning($appraisalJob);
-                AppraisalJobChangeLog::query()->create([
-                    'appraisal_job_id' => $appraisalJob->id,
-                    'user_id' => auth()->user()->id,
-                    'action' => $secondLatestLog->action,
-                    'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser()}",
-                ]);
-            }
         }
     }
 
@@ -138,16 +126,6 @@ class AppraisalJobObserver
             ->first();
     }
 
-    private function getLatestValidLogBeforeReassigning(AppraisalJob $appraisalJob)
-    {
-        $reassignId = $appraisalJob->changeLogs()->where('action', 'reassign')->latest()->first()->id;
-        return $appraisalJob->changeLogs()
-            ->where('id', '<', $reassignId)
-            ->whereNotIn('action', ['accepted', 'declined', 'reassign'])
-            ->latest()
-            ->first();
-    }
-
     private
     function updateLastChangeLog(?AppraisalJobChangeLog $latestLog)
     {
@@ -168,10 +146,11 @@ class AppraisalJobObserver
         }
 
         if (array_key_exists('appraiser_id', $changedFields)) {
-            if (
-                $changedFields['appraiser_id']['new_value'] != null
-                && $changedFields['appraiser_id']['old_value'] != null
-            ) {
+            if ($changedFields['appraiser_id']['old_value'] == null) {
+                return 'assigned and put in progress';
+            } else if ($changedFields['appraiser_id']['new_value'] == null) {
+                return 'sent back to pending when assignment removed';
+            } else {
                 return 'reassigned';
             }
         }
@@ -184,16 +163,10 @@ class AppraisalJobObserver
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'sent back to pending when rejected';
                 }
-                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::InProgress->value) {
-                    return 'sent back to pending when removed assignment';
-                }
             }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'put in progress';
-                }
-                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Pending->value) {
-                    return 'assigned and put in progress';
                 }
                 return 'rejected after review';
             }
