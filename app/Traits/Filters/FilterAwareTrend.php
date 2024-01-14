@@ -78,8 +78,6 @@ trait FilterAwareTrend
             ->get();
 
 
-
-
         $results = array_merge($possibleDateResults, $results->mapWithKeys(function ($result) use ($request, $unit) {
             return [$this->formatAggregateResultDate(
                 $result->date_result, $unit, $request->twelveHourTime === 'true'
@@ -144,7 +142,7 @@ trait FilterAwareTrend
             $minDate = CarbonImmutable::make($minDate)->subMonths(2);
         }
         $boundary = [
-            $minDate,
+            null,
             CarbonImmutable::now($timezone),
         ];
         if ($filters === null) {
@@ -154,10 +152,21 @@ trait FilterAwareTrend
             return $boundary;
         }
         if (isset($filters['CreatedAfter'])) {
-            $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CreatedAfter']));
+            if (!$boundary[0]) {
+                $boundary[0] = \Carbon\Carbon::make($filters['CreatedAfter']);
+            } else {
+                $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CreatedAfter']));
+            }
         }
         if (isset($filters['CompletedAfter'])) {
-            $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CompletedAfter']));
+            if (!$boundary[0]) {
+                $boundary[0] = \Carbon\Carbon::make($filters['CompletedAfter']);
+            } else {
+                $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CompletedAfter']));
+            }
+        }
+        if (!$boundary[0]) {
+            $boundary[0] = $minDate;
         }
         if (isset($filters['CreatedBefore'])) {
             $boundary[1] = min($boundary[1], \Carbon\Carbon::make($filters['CreatedBefore']));
