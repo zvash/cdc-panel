@@ -155,6 +155,7 @@ class AppraiserInvoice extends Lens
                     Carbon::now()->year => Carbon::now()->year,
                     Carbon::now()->subYear()->year => Carbon::now()->subYear()->year,
                 ])
+                ->hideFromIndex()
                 ->displayUsingLabels()
                 ->filterable()
                 ->sortable(),
@@ -174,6 +175,7 @@ class AppraiserInvoice extends Lens
                     12 => 'December',
                 ])
                 ->displayUsingLabels()
+                ->hideFromIndex()
                 ->filterable()
                 ->sortable(),
 
