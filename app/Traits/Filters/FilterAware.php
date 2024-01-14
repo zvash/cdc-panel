@@ -2,9 +2,6 @@
 
 namespace App\Traits\Filters;
 
-use Carbon\Carbon;
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
@@ -43,7 +40,6 @@ trait FilterAware
                 }
             }
         }
-        Log::info('Extracted filters', $filters);
         return $filters;
     }
 
@@ -76,6 +72,7 @@ trait FilterAware
                 'InProvince' => $query = $query->whereRaw("office_id in (select id from offices where province = '$value')"),
                 default => $query = $query->where($column, $value),
             };
+            //Log::info($this->name(), ['key' => $key, 'column' => $column, 'value' => $value, 'res' => $query->toSql()]);
         }
         return $query;
     }
@@ -92,32 +89,5 @@ trait FilterAware
             }
         }
         return false;
-    }
-
-    private function getTimeBoundary($timezone, ?array $filters = null): ?array
-    {
-        $boundary = [
-            CarbonImmutable::now($timezone)->subYears(10),
-            CarbonImmutable::now($timezone),
-        ];
-        if ($filters === null) {
-            $filters = $this->extractFilters(request());
-        }
-        if (!$this->hasTimeBoundFilter($filters)) {
-            return null;
-        }
-        if (isset($filters['CreatedAfter'])) {
-            $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CreatedAfter']));
-        }
-        if (isset($filters['CompletedAfter'])) {
-            $boundary[0] = max($boundary[0], \Carbon\Carbon::make($filters['CompletedAfter']));
-        }
-        if (isset($filters['CreatedBefore'])) {
-            $boundary[1] = min($boundary[1], \Carbon\Carbon::make($filters['CreatedBefore']));
-        }
-        if (isset($filters['CompletedBefore'])) {
-            $boundary[1] = min($boundary[1], \Carbon\Carbon::make($filters['CompletedBefore']));
-        }
-        return $boundary;
     }
 }

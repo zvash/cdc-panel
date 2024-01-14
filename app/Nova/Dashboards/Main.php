@@ -9,6 +9,8 @@ use App\Nova\Filters\OfficeFilter;
 use App\Nova\Filters\ProvinceFilter;
 use App\Nova\Metrics\AverageJobCreationToCompletionDuration;
 use App\Nova\Metrics\JobPerStatus;
+use App\Nova\Metrics\MonthlyCompletedJobs;
+use App\Nova\Metrics\MonthlyRevenue;
 use DigitalCreative\NovaDashboard\Card\NovaDashboard;
 use DigitalCreative\NovaDashboard\Card\View;
 use App\Nova\Metrics\CompletedJobsPerDay;
@@ -62,6 +64,16 @@ class Main extends Dashboard
                             ClientFilter::make(),
                         ]);
                 }),
+            (new MonthlyRevenue())
+                ->width('1/2')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                })->refreshWhenFiltersChange(),
+            (new MonthlyCompletedJobs())
+                ->width('1/2')
+                ->canSee(function () use ($request) {
+                    return $request->user()->hasManagementAccess();
+                })->refreshWhenFiltersChange(),
             (new CompletedJobsPerDay())
                 ->width('2/3')
                 ->defaultRange('7')
