@@ -95,6 +95,35 @@ class AppraisalJob extends Model implements HasMedia
         return null;
     }
 
+    public function inferCommission()
+    {
+        if ($this->commission !== null) {
+            return $this->commission;
+        }
+        if ($this->appraiser_id) {
+            $appraiser = User::query()->find($this->appraiser_id);
+            if ($appraiser && $appraiser->commission) {
+                return $appraiser->commission;
+            }
+        }
+        return 0;
+    }
+
+    public function inferReviewerCommission()
+    {
+        if ($this->reviewer_commission !== null) {
+            return $this->reviewer_commission;
+        }
+        $reviewerId = $this->inferReviewer();
+        if ($reviewerId) {
+            $reviewer = User::query()->find($this->reviewer_id);
+            if ($reviewer && $reviewer->reviewer_commission) {
+                return $reviewer->reviewer_commission;
+            }
+        }
+        return 0;
+    }
+
     public function changeLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(AppraisalJobChangeLog::class);

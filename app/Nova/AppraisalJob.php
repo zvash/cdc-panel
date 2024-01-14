@@ -278,7 +278,7 @@ class AppraisalJob extends Resource
                     return $originalFilename . '-' . time() . '.' . $extension;
                 })
                 ->required(),
-                //->singleImageRules('mimes:pdf,doc,docx,txt,jpg,jpeg,png,webp'),
+            //->singleImageRules('mimes:pdf,doc,docx,txt,jpg,jpeg,png,webp'),
 
 
             Badge::make('Status')->map([
@@ -366,6 +366,22 @@ class AppraisalJob extends Resource
                     return $value ? '$' . number_format($value, 2) : '-';
                 })
                 ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
+
+            Text::make('Commission (%)', 'commission')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? "$value%" : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:100'),
+
+            Text::make('Reviewer Commission (%)', 'reviewer_commission')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? "$value%" : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:100.00'),
 
             Select::make('Payment Terms')
                 ->options(\App\Enums\PaymentTerm::array())

@@ -94,12 +94,16 @@ class AppraiserInvoice extends Lens
                 appraisal_jobs.fee_quoted,
                 appraisal_jobs.payment_terms,
                 appraisal_jobs.completed_at,
+                appraisal_jobs.commission as job_commission,
+                appraisal_jobs.reviewer_commission as job_reviewer_commission,
                 YEAR(appraisal_jobs.completed_at) AS completed_at_year,
                 MONTH(appraisal_jobs.completed_at) AS completed_at_month,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
-                users.commission,
-                reviewers.reviewer_commission,
-                province_taxes.total as province_tax
+                users.commission as user_commission,
+                reviewers.reviewer_commission as user_reviewer_commission,
+                province_taxes.total as province_tax,
+                IFNULL(appraisal_jobs.commission, users.commission) as commission,
+                IFNULL(appraisal_jobs.reviewer_commission, reviewers.reviewer_commission) as reviewer_commission
             FROM
                 appraisal_jobs
             INNER JOIN
