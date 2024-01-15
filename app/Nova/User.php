@@ -93,7 +93,7 @@ class User extends Resource
             //$this->panel('Password', $this->password($request)),
             $this->panel('Reviewers', $this->reviewers($request)),
             $this->panel('Preferred Appraisal Types', $this->preferredAppraisalJobTypes()),
-            $this->panel('Relations', $this->relations()),
+            //$this->panel('Relations', $this->relations()),
         ];
     }
 
@@ -165,7 +165,38 @@ class User extends Resource
             ->pluck('name', 'id')
             ->toArray();
 
+        $invitableRoles = [];
+        if ($request->user()->isSupervisor()) {
+            $invitableRoles = [
+                'SuperAdmin' => 'SuperAdmin',
+                'Admin' => 'Admin',
+                'Appraiser' => 'Appraiser',
+            ];
+        } else if ($request->user()->isSuperAdmin()) {
+            $invitableRoles = [
+                'Admin' => 'Admin',
+                'Appraiser' => 'Appraiser',
+            ];
+        } else if ($request->user()->isAdmin()) {
+            $invitableRoles = [
+                'Appraiser' => 'Appraiser',
+            ];
+        }
+
+        if ($this->id &&  $request->user()->id == $this->id) {
+            $user = \App\Models\User::query()->find($this->id);
+            $currentRole = $user->roles->pluck('name')->last();
+            if ($currentRole && !in_array($currentRole, $invitableRoles)) {
+                $invitableRoles = [$currentRole => $currentRole];
+            }
+        }
+
         return [
+            Select::make('Role')
+                ->options($invitableRoles)
+                ->rules('required', 'in:' . implode(',', array_keys($invitableRoles)))
+                ->required(),
+
             PhoneNumber::make('Phone')
                 ->countries(['CA', 'US'])
                 ->rules('nullable')
@@ -186,18 +217,6 @@ class User extends Resource
                 ->placeholder(' ')
                 ->saveAsJSON()
                 ->options($allOtherAppraisers)
-//                ->dependsOn(['office_id'], function (MultiSelect $field, NovaRequest $request, FormData $formData) use ($reviewerOptions) {
-//                    if (array_key_exists($formData->office_id, $reviewerOptions)) {
-//                        $field->options($reviewerOptions[$formData->office_id]);
-//                    } else {
-//                        $field->options([]);
-//                    }
-//                })
-//                ->hideWhenUpdating(function (NovaRequest $request) {
-//                    return !$request->user()->isSupervisor()
-//                        && !$request->user()->isSuperAdmin()
-//                        && !$request->user()->isAdmin();
-//                })
                 ->max(1)
                 ->hideFromIndex(),
 
