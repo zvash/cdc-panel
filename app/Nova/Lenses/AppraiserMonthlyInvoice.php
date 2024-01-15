@@ -174,7 +174,7 @@ class AppraiserMonthlyInvoice extends Lens
     /**
      * Get the fields available to the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function fields(NovaRequest $request)
@@ -229,6 +229,12 @@ class AppraiserMonthlyInvoice extends Lens
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
 
+            Text::make('PDF', 'appraiser_id')
+                ->displayUsing(function ($value) {
+                    //return '<a href="/pdf/appraiser-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '" class="no-underline dim font-bold">Download</a>';
+                    return '<div class="shrink-0"><a size="md" class="shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold shadow rounded focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring bg-primary-500 hover:bg-primary-400 active:bg-primary-600 text-white dark:text-gray-800 inline-flex items-center font-bold px-4 h-9 text-sm shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold" href="/pdf/appraiser-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '"><span class="hidden md:inline-block">PDF</span><span class="inline-block md:hidden">PDF</span></a></div>';
+                })->asHtml(),
+
             //filters
             Select::make('Appraiser', 'appraiser_id')
                 ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
@@ -264,7 +270,7 @@ class AppraiserMonthlyInvoice extends Lens
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -275,7 +281,7 @@ class AppraiserMonthlyInvoice extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -286,7 +292,7 @@ class AppraiserMonthlyInvoice extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)

@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.1",
         "aws/aws-sdk-php": "^3.295",
+        "barryvdh/laravel-dompdf": "^2.0",
         "brandonjbegle/nova4-google-autocomplete-field": "^0.2.2",
         "digital-creative/nova-dashboard": "^1.1",
         "digitalcloud/zipcode-nova": "^1.0",

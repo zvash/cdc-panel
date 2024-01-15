@@ -35,3 +35,4 @@ Route::get(
 
 Route::get('reset-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.reset');
 
+Route::get('/pdf/appraiser-invoice/{appraiserId}/year/{year}/month/{month}', [\App\Http\Controllers\PDFController::class, 'appraiserInvoice']);
