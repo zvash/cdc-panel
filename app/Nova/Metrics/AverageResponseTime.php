@@ -3,6 +3,8 @@
 namespace App\Nova\Metrics;
 
 use App\Models\AppraisalJobChangeLog;
+use App\Traits\Filters\FilterAware;
+use App\Traits\Filters\FilterAwareTrend;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Metrics\Trend;
 use Laravel\Nova\Metrics\TrendResult;
@@ -10,6 +12,7 @@ use Laravel\Nova\Nova;
 
 class AverageResponseTime extends Trend
 {
+    use FilterAware, FilterAwareTrend;
 
     /**
      * Calculate the value of the metric.
@@ -19,11 +22,13 @@ class AverageResponseTime extends Trend
      */
     public function calculate(NovaRequest $request)
     {
+        $filters = $this->extractFilters($request);
         $query = AppraisalJobChangeLog::query()->fromSub(function ($query) {
             $query->from('appraisal_job_change_logs')
                 ->selectRaw('
                     id,
                     user_id,
+                    user_id as appraiser_id,
                     action,
                     duration,
                     updated_at,
@@ -37,6 +42,12 @@ class AverageResponseTime extends Trend
         if ($request->user()->isAppraiser()) {
             $query->where('user_id', $request->user()->id);
         }
+
+        $query = $this->applyFilter($query, $filters, [
+            'created_at',
+            'appraiser_id',
+        ]);
+
         return $this->averageByDays($request, $query, 'duration', 'updated_at')
             ->transform(function ($value) {
                 return intval($value / 60);

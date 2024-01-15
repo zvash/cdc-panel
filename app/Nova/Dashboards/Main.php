@@ -8,6 +8,7 @@ use App\Nova\Filters\HappenedAtFilter;
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\Filters\ProvinceFilter;
 use App\Nova\Metrics\AverageJobCreationToCompletionDuration;
+use App\Nova\Metrics\AverageResponseTime;
 use App\Nova\Metrics\JobPerStatus;
 use App\Nova\Metrics\MonthlyCompletedJobs;
 use App\Nova\Metrics\MonthlyRevenue;
@@ -90,6 +91,10 @@ class Main extends Dashboard
                 ->canSee(function () use ($request) {
                     return $request->user()->hasManagementAccess();
                 })->refreshWhenFiltersChange(),
+            (new AverageResponseTime())
+                ->width('1/3')
+                ->defaultRange('30')
+                ->refreshWhenFiltersChange(),
             ...$completedPerProvinces,
         ];
     }
