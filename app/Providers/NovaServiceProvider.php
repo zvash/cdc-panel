@@ -109,7 +109,8 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                         if (!$request->user()) {
                             return 0;
                         }
-                        return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Pending)->count();
+                        return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Pending)
+                            ->whereNull('appraiser_id')->count();
                     }),
 //                MenuItem::lens(AppraisalJob::class, RejectedAppraisalJobs::class)
 //                    ->canSee(function ($request) {
