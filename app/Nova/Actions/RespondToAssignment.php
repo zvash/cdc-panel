@@ -5,6 +5,9 @@ namespace App\Nova\Actions;
 use App\Enums\AppraisalJobAssignmentStatus;
 use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalJob;
+use App\Models\User;
+use App\Notifications\JobAssignmentAccepted;
+use App\Notifications\JobAssignmentRejected;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
@@ -117,6 +120,12 @@ class RespondToAssignment extends Action
             DB::rollBack();
             return Action::danger('An error occurred while processing your request.');
         }
+
+        if ($fields->response == 'decline') {
+            $creator = User::query()->find($this->model->created_by);
+            $creator->notify(new JobAssignmentRejected($this->model, $user));
+        }
+
         if ($fields->response == 'decline' && $this->source == 'detail') {
             return Action::redirect('/resources/appraisal-jobs/');
         }
@@ -159,6 +168,9 @@ class RespondToAssignment extends Action
             ->each(function ($assignment) {
                 $assignment->setAttribute('status', AppraisalJobAssignmentStatus::Missed)->save();
             });
+
+        $creator = User::query()->find($job->created_by);
+        $creator->notify(new JobAssignmentAccepted($job, $user));
     }
 
     private function updateAssignmentStatus($user, $fields)

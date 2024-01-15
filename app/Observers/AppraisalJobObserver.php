@@ -6,6 +6,9 @@ use App\Models\AppraisalJob;
 use App\Models\AppraisalJobChangeLog;
 use App\Models\AppraisalJobFile;
 use App\Models\User;
+use App\Notifications\JobAssignedNoAction;
+use App\Notifications\JobAssignmentAccepted;
+use App\Notifications\JobAssignmentDropped;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -28,12 +31,29 @@ class AppraisalJobObserver
 
     private function handleAppraiserAssignment(AppraisalJob $appraisalJob)
     {
+        $user = auth()->user();
         $changedFields = $this->getChangedFields($appraisalJob);
         if (array_key_exists('appraiser_id', $changedFields)) {
             if ($changedFields['appraiser_id']['old_value'] == null) {
                 $appraisalJob->status = \App\Enums\AppraisalJobStatus::InProgress;
+
+                //send assignment email
+                if (
+                    $changedFields['appraiser_id']['new_value']
+                    && $user->hasManagementAccess()
+                    && $user->id != $changedFields['appraiser_id']['new_value']
+                ) {
+                    $appraiser = User::query()->find($changedFields['appraiser_id']['new_value']);
+                    $appraiser->notify(new JobAssignedNoAction($appraisalJob));
+                }
             } else if ($changedFields['appraiser_id']['new_value'] == null) {
                 $appraisalJob->status = \App\Enums\AppraisalJobStatus::Pending;
+
+                //send rejection email
+                if ($user->id == $changedFields['appraiser_id']['old_value']) {
+                    $creator = User::query()->find($appraisalJob->created_by);
+                    $creator->notify(new JobAssignmentDropped($appraisalJob, $user));
+                }
             }
             if (User::query()->find(auth()->user()->id)->hasManagementAccess()) {
                 $appraisalJob->assignments()

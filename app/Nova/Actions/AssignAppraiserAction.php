@@ -8,6 +8,7 @@ use App\Models\AppraisalJob;
 use App\Models\AppraisalJobAssignment;
 use App\Models\Office;
 use App\Models\User;
+use App\Notifications\JobAssigned;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -65,24 +66,13 @@ class AssignAppraiserAction extends Action
                 'status' => AppraisalJobAssignmentStatus::Pending
             ])->toArray(), ['appraisal_job_id', 'appraiser_id'], ['status']);
 
-//        $selectedAppraisers->each(function ($appraiserId) {
-//            $assignment = AppraisalJobAssignment::query()
-//                ->where('appraisal_job_id', $this->model->id)
-//                ->where('appraiser_id', $appraiserId)
-//                ->first();
-//            if ($assignment) {
-//                $assignment->setAttribute('status', AppraisalJobAssignmentStatus::Pending)->save();
-//            } else {
-//                AppraisalJobAssignment::query()->create([
-//                    'appraisal_job_id' => $this->model->id,
-//                    'appraiser_id' => $appraiserId,
-//                    'assigned_by' => auth()->user()->id,
-//                    'status' => AppraisalJobAssignmentStatus::Pending
-//                ]);
-//            }
-//        });
-
         $this->model->setAttribute('status', AppraisalJobStatus::Assigned)->save();
+
+        $selectedAppraisers->map(function ($appraiserId) {
+            $appraiser = User::query()->find($appraiserId);
+            $appraiser->notify(new JobAssigned($this->model));
+        });
+
         return Action::message("job assignment updated successfully based on your selection.");
     }
 
