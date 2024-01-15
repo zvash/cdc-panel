@@ -20,6 +20,7 @@ use App\Nova\Lenses\ClientMonthlyInvoice;
 use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
+use App\Nova\Lenses\MonthlyRevenueInvoice;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
@@ -527,7 +528,12 @@ class AppraisalJob extends Resource
             (new ReviewerInvoice($this->resource)),
             (new ClientInvoice($this->resource)),
             (new AppraiserMonthlyInvoice($this->resource)),
-            (new ClientMonthlyInvoice($this->resource)),
+            (new ClientMonthlyInvoice($this->resource))->canSee(function () use ($request) {
+                return $request->user()->hasManagementAccess();
+            }),
+            (new MonthlyRevenueInvoice($this->resource))->canSee(function () use ($request) {
+                return $request->user()->isSuperAdmin() || $request->user()->isSupervisor();
+            }),
         ];
     }
 
