@@ -20,23 +20,25 @@ class AppraisalJobObserver
             $appraisalJob->created_by = auth()->user()->id;
         }
         if ($appraisalJob->id) {
-            $this->handleChangeLog($appraisalJob);
+            $this->handleChangeLog($appraisalJob, false);
         }
     }
 
     public function created(AppraisalJob $appraisalJob)
     {
-        $this->handleChangeLog($appraisalJob);
+        $this->handleChangeLog($appraisalJob, true);
     }
 
-    private function handleAppraiserAssignment(AppraisalJob $appraisalJob)
+    private function handleAppraiserAssignment(AppraisalJob $appraisalJob, bool $saved = false)
     {
         $user = auth()->user();
         $changedFields = $this->getChangedFields($appraisalJob);
         if (array_key_exists('appraiser_id', $changedFields)) {
             if ($changedFields['appraiser_id']['old_value'] == null) {
                 $appraisalJob->status = \App\Enums\AppraisalJobStatus::InProgress;
-
+                if ($saved) {
+                    $appraisalJob->saveQuietly();
+                }
                 //send assignment email
                 if (
                     $changedFields['appraiser_id']['new_value']
@@ -48,6 +50,9 @@ class AppraisalJobObserver
                 }
             } else if ($changedFields['appraiser_id']['new_value'] == null) {
                 $appraisalJob->status = \App\Enums\AppraisalJobStatus::Pending;
+                if ($saved) {
+                    $appraisalJob->saveQuietly();
+                }
 
                 //send rejection email
                 if ($user->id == $changedFields['appraiser_id']['old_value']) {
@@ -63,7 +68,7 @@ class AppraisalJobObserver
         }
     }
 
-    private function handleChangeLog(AppraisalJob $appraisalJob): void
+    private function handleChangeLog(AppraisalJob $appraisalJob, bool $saved = true): void
     {
         $changedFields = $this->getChangedFields($appraisalJob);
         if (
@@ -81,7 +86,7 @@ class AppraisalJobObserver
             return;
         }
 
-        $this->handleAppraiserAssignment($appraisalJob);
+        $this->handleAppraiserAssignment($appraisalJob, $saved);
 
         /** @var \App\Models\AppraisalJobChangeLog $latestLog */
         $latestLog = $this->getLatestChangeLog($appraisalJob);
