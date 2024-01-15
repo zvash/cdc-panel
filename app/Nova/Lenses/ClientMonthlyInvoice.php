@@ -161,6 +161,12 @@ class ClientMonthlyInvoice extends Lens
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
 
+            Text::make('PDF', 'client_id')
+                ->displayUsing(function ($value) {
+                    //return '<a href="/pdf/client-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '" class="no-underline dim font-bold">Download</a>';
+                    return '<div class="shrink-0"><a size="md" class="shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold shadow rounded focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring bg-primary-500 hover:bg-primary-400 active:bg-primary-600 text-white dark:text-gray-800 inline-flex items-center font-bold px-4 h-9 text-sm shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold" href="/pdf/client-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '"><span class="hidden md:inline-block">PDF</span><span class="inline-block md:hidden">PDF</span></a></div>';
+                })->asHtml(),
+
             //filters
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options([null => '-'] + AppraisalType::pluck('name', 'id')->toArray())

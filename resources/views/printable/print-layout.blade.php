@@ -27,6 +27,7 @@
             border: 1px solid #dddddd;
             text-align: left;
             padding: 8px;
+            font-size: 10px;
         }
 
         tr:nth-child(even) {
