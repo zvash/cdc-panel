@@ -11,7 +11,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Laravel\Nova\Nova;
 
-class JobAssignmentRejected extends Notification
+class JobAssignmentRejected extends Notification implements ShouldQueue
 {
     use Queueable;
 

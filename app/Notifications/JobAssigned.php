@@ -4,16 +4,18 @@ namespace App\Notifications;
 
 use App\Models\AppraisalJob;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
 use Laravel\Nova\Nova;
 
-class JobAssigned extends Notification
+class JobAssigned extends Notification implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     private $appraisalJob;
+
     /**
      * Create a new message instance.
      */

@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\URL;
 
-class UserInvited extends Notification
+class UserInvited extends Notification implements ShouldQueue
 {
     use Queueable;
 

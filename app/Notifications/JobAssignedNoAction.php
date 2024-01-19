@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Laravel\Nova\Nova;
 
-class JobAssignedNoAction extends Notification
+class JobAssignedNoAction extends Notification implements ShouldQueue
 {
     use Queueable;
 

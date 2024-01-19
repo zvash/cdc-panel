@@ -10,7 +10,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Laravel\Nova\Nova;
 
-class JobAssignmentDropped extends Notification
+class JobAssignmentDropped extends Notification implements ShouldQueue
 {
     use Queueable;
 
