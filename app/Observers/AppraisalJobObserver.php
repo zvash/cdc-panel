@@ -201,6 +201,9 @@ class AppraisalJobObserver
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Completed) {
                 return 'completed';
             }
+            if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Cancelled) {
+                return 'cancelled';
+            }
         }
         return 'created';
     }

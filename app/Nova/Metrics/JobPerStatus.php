@@ -51,6 +51,7 @@ class JobPerStatus extends Partition
                 'In Progress' => 'rgb(57,130,193)',
                 'In Review' => 'rgb(239,199,82)',
                 'Completed' => 'rgb(85,166,93)',
+                'Cancelled' => 'rgb(53,72,99)',
             ]);
     }
 

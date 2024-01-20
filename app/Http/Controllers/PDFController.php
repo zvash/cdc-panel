@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\Client;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -86,6 +87,8 @@ class PDFController extends Controller
                 province_taxes.province_id = provinces.id
             WHERE
                 completed_at IS NOT NULL
+            AND
+                status = '" . AppraisalJobStatus::Completed->value . "'
             AND
                 fee_quoted IS NOT NULL
             AND
@@ -187,6 +190,8 @@ class PDFController extends Controller
                 province_taxes.province_id = provinces.id
             WHERE
                 completed_at IS NOT NULL
+            AND
+                status = '" . AppraisalJobStatus::Completed->value . "'
             AND
                 fee_quoted IS NOT NULL
             AND

@@ -3,6 +3,7 @@
 namespace App\Nova\Lenses;
 
 use App\Enums\AppraisalJobAssignmentStatus;
+use App\Enums\AppraisalJobStatus;
 use App\Nova\Lenses\Traits\AppraisalJobLensIndex;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
@@ -80,7 +81,7 @@ class RejectedAppraisalJobs extends Lens
             })->whereDoesntHave('assignments', function ($query) {
                 $query->where('status', AppraisalJobAssignmentStatus::Pending)
                     ->orWhere('status', AppraisalJobAssignmentStatus::Accepted);
-            })
+            })->whereNot('status', AppraisalJobStatus::Cancelled->value)
         ));
     }
 

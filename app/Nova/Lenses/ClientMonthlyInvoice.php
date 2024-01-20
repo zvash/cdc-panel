@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\Client;
 use Carbon\Carbon;
@@ -93,6 +94,7 @@ class ClientMonthlyInvoice extends Lens
                     'cdc_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100'),
                 ])
                 ->whereNotNull('completed_at')
+                ->whereNot('status', AppraisalJobStatus::Cancelled->value)
                 ->whereNotNull('fee_quoted')
                 ->whereNotNull('province')
                 ->where(function ($query) {

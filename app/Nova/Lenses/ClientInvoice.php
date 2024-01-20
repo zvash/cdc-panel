@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\User;
 use Laravel\Nova\Fields\BelongsTo;
@@ -102,6 +103,7 @@ class ClientInvoice extends Lens
                         ->whereColumn('provinces.name', 'appraisal_jobs.province'),
                 ])
                 ->whereNotNull('completed_at')
+                ->whereNot('status', AppraisalJobStatus::Cancelled->value)
                 ->whereNotNull('fee_quoted')
                 ->whereNotNull('province')
                 ->where(function ($query) {

@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalType;
 use App\Nova\User;
@@ -122,6 +123,8 @@ class AppraiserInvoice extends Lens
                 province_taxes.province_id = provinces.id
             WHERE
                 completed_at IS NOT NULL
+            AND
+                status = '" . AppraisalJobStatus::Completed->value . "'
             AND
                 fee_quoted IS NOT NULL
             AND

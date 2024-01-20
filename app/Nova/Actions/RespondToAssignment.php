@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Log;
 use Konsulting\NovaActionButtons\ShowAsButton;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
+use Laravel\Nova\Fields\FormData;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use NormanHuth\NovaRadioField\Radio;
 
@@ -182,7 +184,11 @@ class RespondToAssignment extends Action
             ->where('appraiser_id', $user->id)
             ->first();
         if ($assignment) {
-            $assignment->setAttribute('status', $status)->save();
+            $assignment->setAttribute('status', $status);
+            if ($fields->response == 'decline') {
+                $assignment->setAttribute('reject_reason', $fields->reason);
+            }
+            $assignment->save();
         } else {
             throw new \Exception('Cannot find the assignment.');
         }
@@ -208,6 +214,16 @@ class RespondToAssignment extends Action
                 ])
                 ->required()
                 ->addLabelStyles(['width' => '15rem']),
+
+            Textarea::make('Reject Reason', 'reason')
+                ->rows(3)
+                ->readonly()
+                ->nullable()
+                ->dependsOn(['response'], function (Textarea $field, NovaRequest $request, FormData $formData) {
+                    if ($formData->response == 'decline') {
+                        $field->readonly(false)->required()->rules(['required']);
+                    }
+                })
         ];
     }
 }

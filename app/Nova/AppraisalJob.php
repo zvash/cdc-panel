@@ -5,6 +5,7 @@ namespace App\Nova;
 use App\Models\AppraisalType;
 use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
+use App\Nova\Actions\CancelAppraisalJob;
 use App\Nova\Actions\DropAppraisalJob;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
@@ -31,6 +32,8 @@ use App\Nova\Metrics\AverageReviewerProcessDuration;
 use App\Nova\Metrics\AverageWorkOnJobDuration;
 use App\Nova\Metrics\CompletedJobsPerDay;
 use App\Nova\Metrics\JobPerStatus;
+use App\Rules\EmailOrNotAvailable;
+use App\Rules\PostalCodeOrNotAvailable;
 use App\Traits\NovaResource\LimitsIndexQuery;
 use BrandonJBegle\GoogleAutocomplete\GoogleAutocomplete;
 use Dniccum\PhoneNumber\PhoneNumber;
@@ -330,7 +333,7 @@ class AppraisalJob extends Resource
                 ->hideFromIndex()
                 ->nullable()
                 ->placeholder('N/A')
-                ->creationRules('nullable', 'email'),
+                ->creationRules('nullable', new EmailOrNotAvailable()),
 
             Date::make('Due Date')
                 ->hideFromIndex()
@@ -398,7 +401,7 @@ class AppraisalJob extends Resource
                 ->hideFromIndex()
                 ->nullable()
                 ->placeholder('N/A')
-                ->creationRules('nullable', 'email'),
+                ->creationRules('nullable', new EmailOrNotAvailable()),
 
             Text::make('Payment Link')
                 ->hideFromIndex()
@@ -413,39 +416,39 @@ class AppraisalJob extends Resource
     public function propertyAddress(): Panel
     {
         return $this->panel('Property Address', [
-            Select::make('Property Province')
-                ->searchable()
-                ->hideFromIndex()
-                ->options(\App\Models\Province::pluck('name', 'name'))
-                ->required()
-                ->rules('required')
-                ->displayUsingLabels(),
+//            Select::make('Property Province')
+//                ->searchable()
+//                ->hideFromIndex()
+//                ->options(\App\Models\Province::pluck('name', 'name'))
+//                ->required()
+//                ->rules('required')
+//                ->displayUsingLabels(),
+//
+//            Select::make('Property City')
+//                ->searchable()
+//                ->hideFromIndex()
+//                ->dependsOn(['property_province'], function (Select $field, NovaRequest $request, FormData $formData) {
+//                    if ($formData->property_province) {
+//                        $field->options(
+//                            \App\Models\City::where('province_id', \App\Models\Province::where('name', $formData->property_province)
+//                                ->first()->id)->pluck('name', 'name')
+//                        );
+//                    } else {
+//                        $field->options([]);
+//                    }
+//                })
+//                ->required()
+//                ->rules('required')
+//                ->displayUsingLabels(),
 
-            Select::make('Property City')
-                ->searchable()
-                ->hideFromIndex()
-                ->dependsOn(['property_province'], function (Select $field, NovaRequest $request, FormData $formData) {
-                    if ($formData->property_province) {
-                        $field->options(
-                            \App\Models\City::where('province_id', \App\Models\Province::where('name', $formData->property_province)
-                                ->first()->id)->pluck('name', 'name')
-                        );
-                    } else {
-                        $field->options([]);
-                    }
-                })
-                ->required()
-                ->rules('required')
-                ->displayUsingLabels(),
-
-            GoogleAutocomplete::make('Address', 'property_address')
+            GoogleAutocomplete::make('Property Address', 'property_address')
                 ->countries('CA')
                 ->required()
                 ->rules('required')
                 ->hideFromIndex(),
 
             Text::make('Postal Code', 'property_postal_code')
-                ->rules('regex:/^[A-Za-z]{1}\d{1}[A-Za-z]{1}[ ]{0,1}\d{1}[A-Za-z]{1}\d{1}$/', 'nullable')
+                ->rules('nullable', new PostalCodeOrNotAvailable())
                 ->nullable()
                 ->hideFromIndex(),
         ]);
@@ -678,6 +681,18 @@ class AppraisalJob extends Resource
                 ->canRun(function () use ($request) {
                     return $this->userIsTheJobsAppraiserAndJobIsNotCompleted($request);
                 }),
+            (new CancelAppraisalJob())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.cancel_job.confirm_text'))
+                ->confirmButtonText(__('nova.actions.cancel_job.confirm_button'))
+                ->cancelButtonText(__('nova.actions.cancel_job.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->jobCanBeMarkedAsCancelledByCurrentUser($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->jobCanBeMarkedAsCancelledByCurrentUser($request);
+                }),
         ];
     }
 
@@ -798,6 +813,20 @@ class AppraisalJob extends Resource
                 ($this->resource->appraiser_id == $user->id && !$user->reviewers)
                 || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
             );
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function jobCanBeMarkedAsCancelledByCurrentUser(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        $user = \App\Models\User::query()->find($user->id);
+        return $user->hasManagementAccess();
     }
 
     private function userCanRejectJob(NovaRequest $request): bool

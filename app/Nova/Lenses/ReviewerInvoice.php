@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\User;
 use Laravel\Nova\Fields\BelongsTo;
@@ -72,8 +73,8 @@ class ReviewerInvoice extends Lens
     /**
      * Get the query builder / paginator for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\LensRequest  $request
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param \Laravel\Nova\Http\Requests\LensRequest $request
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @return mixed
      */
     public static function query(LensRequest $request, $query)
@@ -109,6 +110,7 @@ class ReviewerInvoice extends Lens
                         ->whereColumn('provinces.name', 'appraisal_jobs.province'),
                 ])
                 ->whereNotNull('completed_at')
+                ->whereNot('status', AppraisalJobStatus::Cancelled->value)
                 ->whereNotNull('fee_quoted')
                 ->whereNotNull('province')
                 ->whereNotNull('reviewer_id')
@@ -127,7 +129,7 @@ class ReviewerInvoice extends Lens
     /**
      * Get the fields available to the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function fields(NovaRequest $request)
@@ -209,7 +211,7 @@ class ReviewerInvoice extends Lens
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -220,7 +222,7 @@ class ReviewerInvoice extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -231,7 +233,7 @@ class ReviewerInvoice extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)

@@ -37,6 +37,9 @@ class AppraisalJobAssignmentObserver
     {
         $action = $this->determineAction($appraisalJobAssignment);
         $description = "Appraisal job was {$action} by {$this->getLinkToTheAuthenticatedUser()}.";
+        if ($action == 'declined' && $appraisalJobAssignment->reject_reason) {
+            $description .= " Reason: {$appraisalJobAssignment->reject_reason}";
+        }
         AppraisalJobChangeLog::query()->create([
             'appraisal_job_id' => $appraisalJobAssignment->appraisalJob->id,
             'user_id' => auth()->user()->id,
