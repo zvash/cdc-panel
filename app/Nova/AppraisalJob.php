@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
@@ -754,6 +755,9 @@ class AppraisalJob extends Resource
         if ($request instanceof ActionRequest) {
             return true;
         }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
+        }
         $user = $request->user();
         return $user->isAppraiser()
             && !$this->resource->is_on_hold
@@ -770,6 +774,9 @@ class AppraisalJob extends Resource
         if ($request instanceof ActionRequest) {
             return true;
         }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
+        }
         $user = $request->user();
         return $user->isAppraiser()
             && !$this->resource->is_on_hold
@@ -785,6 +792,9 @@ class AppraisalJob extends Resource
     {
         if ($request instanceof ActionRequest) {
             return true;
+        }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
         }
         $user = $request->user();
         return $user->isAppraiser()
@@ -803,6 +813,9 @@ class AppraisalJob extends Resource
     {
         if ($request instanceof ActionRequest) {
             return true;
+        }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
         }
         $user = $request->user();
         $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
@@ -826,13 +839,16 @@ class AppraisalJob extends Resource
         }
         $user = $request->user();
         $user = \App\Models\User::query()->find($user->id);
-        return $user->hasManagementAccess();
+        return $this->resource->status != AppraisalJobStatus::Cancelled->value && $user->hasManagementAccess();
     }
 
     private function userCanRejectJob(NovaRequest $request): bool
     {
         if ($request instanceof ActionRequest) {
             return true;
+        }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
         }
         $user = $request->user();
         $appraiser = \App\Models\User::query()->find($this->resource->appraiser_id);
@@ -851,6 +867,9 @@ class AppraisalJob extends Resource
     {
         if ($request instanceof ActionRequest) {
             return true;
+        }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
         }
         return $request->user()->hasManagementAccess()
             && in_array($this->resource->status, [
@@ -871,6 +890,9 @@ class AppraisalJob extends Resource
         if ($request instanceof ActionRequest) {
             return true;
         }
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
+        }
         $user = $request->user();
         return $user->isAppraiser()
             && $this->resource->assignments()
@@ -885,6 +907,9 @@ class AppraisalJob extends Resource
      */
     private function userCanAssignJob(NovaRequest $request): bool
     {
+        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+            return false;
+        }
         return $request->user()->hasManagementAccess()
             && $this->resource->appraiser_id === null;
     }
