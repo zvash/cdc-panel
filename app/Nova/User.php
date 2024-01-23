@@ -265,16 +265,16 @@ class User extends Resource
     public function cards(NovaRequest $request)
     {
         return [
-            (new AverageResponseTime())
-                ->width('1/3'),
-            (new AverageResponseTime())
-                ->width('1/3')
-                ->onlyOnDetail(),
-            (new CompletedJobsPerDay())
-                ->width('2/3')
-                ->setSource('appraiser_id')
-                ->defaultRange('7')
-                ->onlyOnDetail(),
+//            (new AverageResponseTime())
+//                ->width('1/3'),
+//            (new AverageResponseTime())
+//                ->width('1/3')
+//                ->onlyOnDetail(),
+//            (new CompletedJobsPerDay())
+//                ->width('2/3')
+//                ->setSource('appraiser_id')
+//                ->defaultRange('7')
+//                ->onlyOnDetail(),
         ];
     }
 
