@@ -37,7 +37,8 @@ class DropAppraisalJob extends Action
         if ($model->appraiser_id == $user->id) {
             $model->setAttribute('appraiser_id', null);
             if (
-                $user->reviewers
+                $user
+                && $user->reviewers
                 && is_array($user->reviewers)
                 && count($user->reviewers)
                 && $user->reviewers[0] * 1 == $model->inferReviewer()

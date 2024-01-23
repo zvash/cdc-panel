@@ -138,7 +138,7 @@ class AppraisalJob extends Model implements HasMedia
             return AppraisalJobStatus::InProgress;
         }
         if ($this->status == AppraisalJobStatus::InProgress->value) {
-            if ($this->reviewer_id || ($this->appraiser_id && User::query()->find($this->appraiser_id)->reviewers)) {
+            if ($this->reviewer_id || ($this->appraiser_id && User::query()->find($this->appraiser_id)?->reviewers)) {
                 return AppraisalJobStatus::InReview;
             }
             return AppraisalJobStatus::Completed;

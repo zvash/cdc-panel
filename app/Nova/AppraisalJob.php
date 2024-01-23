@@ -264,7 +264,7 @@ class AppraisalJob extends Resource
                         $reviewer = \App\Models\User::query()->find($this->reviewer_id);
 
                     } else {
-                        $reviewers = \App\Models\User::query()->find($value)->reviewers;
+                        $reviewers = \App\Models\User::query()->find($value)?->reviewers;
                         if ($reviewers && count($reviewers) > 0) {
                             $reviewer = \App\Models\User::query()->find($reviewers[0]);
                         }
@@ -447,10 +447,10 @@ class AppraisalJob extends Resource
                 ->rules('required')
                 ->hideFromIndex(),
 
-            Text::make('Postal Code', 'property_postal_code')
-                ->rules('nullable', new PostalCodeOrNotAvailable())
-                ->nullable()
-                ->hideFromIndex(),
+//            Text::make('Postal Code', 'property_postal_code')
+//                ->rules('nullable', new PostalCodeOrNotAvailable())
+//                ->nullable()
+//                ->hideFromIndex(),
         ]);
     }
 

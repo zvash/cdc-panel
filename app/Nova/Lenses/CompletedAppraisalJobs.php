@@ -150,7 +150,7 @@ class CompletedAppraisalJobs extends Lens
                         $reviewer = \App\Models\User::query()->find($this->reviewer_id);
 
                     } else {
-                        $reviewers = \App\Models\User::query()->find($value)->reviewers;
+                        $reviewers = \App\Models\User::query()->find($value)?->reviewers;
                         if ($reviewers && count($reviewers) > 0) {
                             $reviewer = \App\Models\User::query()->find($reviewers[0]);
                         }
