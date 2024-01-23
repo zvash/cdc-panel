@@ -2,6 +2,7 @@
 
 namespace App\Traits\Filters;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
@@ -45,6 +46,7 @@ trait FilterAware
 
     private function filterColumn(string $key): string
     {
+        Log::info($this->name(), ['key' => $key]);
         return match ($key) {
             'CreatedAfter', 'CreatedBefore' => 'created_at',
             'CompletedAfter', 'CompletedBefore' => 'completed_at',
@@ -52,6 +54,7 @@ trait FilterAware
             'OfficeFilter' => 'office_id',
             'AppraisalTypeFilter' => 'appraisal_type_id',
             'ClientFilter' => 'client_id',
+            'AppraiserFilter' => 'appraiser_id',
             default => '',
         };
     }

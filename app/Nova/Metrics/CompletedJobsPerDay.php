@@ -66,7 +66,8 @@ class CompletedJobsPerDay extends Trend
                 'created_at',
                 'completed_at',
                 'client_id',
-                'appraisal_type_id'
+                'appraisal_type_id',
+                'appraiser_id',
             ]);
             $query->join('offices', 'offices.id', '=', 'appraisal_jobs.office_id')
                 ->whereRaw("offices.province = '{$this->provinceName}'");

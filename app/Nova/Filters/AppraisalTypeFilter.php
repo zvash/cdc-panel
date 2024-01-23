@@ -41,6 +41,12 @@ class AppraisalTypeFilter extends Filter
      */
     public function options(NovaRequest $request)
     {
-        return AppraisalType::query()->pluck('id', 'name')->toArray();;
+        $options = AppraisalType::query()->orderByRaw('name != "Other" desc')->orderBy('id')->pluck('name', 'id');
+        return $options->map(function ($name, $id) {
+            return [
+                'label' => $name,
+                'value' => $id,
+            ];
+        })->toArray();
     }
 }

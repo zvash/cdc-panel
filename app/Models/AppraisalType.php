@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class AppraisalType extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'name',
+    ];
 }

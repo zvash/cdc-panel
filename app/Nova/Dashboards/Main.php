@@ -3,6 +3,7 @@
 namespace App\Nova\Dashboards;
 
 use App\Nova\Filters\AppraisalTypeFilter;
+use App\Nova\Filters\AppraiserFilter;
 use App\Nova\Filters\ClientFilter;
 use App\Nova\Filters\HappenedAtFilter;
 use App\Nova\Filters\OfficeFilter;
@@ -63,6 +64,7 @@ class Main extends Dashboard
                             AppraisalTypeFilter::make(),
                             ProvinceFilter::make(),
                             ClientFilter::make(),
+                            AppraiserFilter::make(),
                         ]);
                 }),
             (new MonthlyRevenue())

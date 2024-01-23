@@ -37,13 +37,14 @@ class MarkAsCompleted extends Action
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
         $canMarkAsCompletedByAppraiser = $model->appraiser_id == $user->id
-            && !$user->reviewers
+            && !$model->inferReviewer()
             && $model->status == AppraisalJobStatus::InProgress->value;
 
         $appraiser = User::query()->find($model->appraiser_id);
-        $canMarkAsCompletedByReviewer = $appraiser && $appraiser->reviewers
-            && in_array($user->id, $appraiser->reviewers)
+        $canMarkAsCompletedByReviewer = $appraiser
+            && $user->id == $model->inferReviewer()
             && $model->status == AppraisalJobStatus::InReview->value;
+
         $canMarkAsCompleted = $canMarkAsCompletedByAppraiser || $canMarkAsCompletedByReviewer;
         if (!$model->is_on_hold && $canMarkAsCompleted) {
             $model->setAttribute('status', AppraisalJobStatus::Completed)

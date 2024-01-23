@@ -39,6 +39,12 @@ class OfficeFilter extends Filter
      */
     public function options(NovaRequest $request)
     {
-        return Office::query()->pluck('id', 'city')->toArray();
+        $options = Office::query()->pluck('city', 'id');
+        return $options->map(function ($city, $id) {
+            return [
+                'label' => $city,
+                'value' => $id,
+            ];
+        })->toArray();
     }
 }

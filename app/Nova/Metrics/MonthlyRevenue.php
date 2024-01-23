@@ -24,6 +24,7 @@ class MonthlyRevenue extends Trend
         $rawQueryAsString = "
             SELECT
                 appraisal_jobs.id,
+                appraisal_jobs.appraiser_id,
                 appraisal_jobs.client_id,
                 appraisal_jobs.office_id,
                 appraisal_jobs.appraisal_type_id,

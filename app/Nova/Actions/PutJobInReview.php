@@ -35,7 +35,7 @@ class PutJobInReview extends Action
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
         $canSendToReview = $model->appraiser_id == $user->id
-            && $user->reviewers
+            && $model->inferReviewer()
             && $model->status == AppraisalJobStatus::InProgress->value;
 
         if (!$model->is_on_hold && $canSendToReview) {

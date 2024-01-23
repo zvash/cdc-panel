@@ -188,7 +188,7 @@ class AppraisalJob extends Resource
             ])->onlyOnIndex(),
 
             Select::make('Appraisal Type', 'appraisal_type_id')
-                ->options(AppraisalType::pluck('name', 'id'))
+                ->options(AppraisalType::query()->orderByRaw('name != "Other" desc')->orderBy('id')->pluck('name', 'id'))
                 ->required()
                 ->hideFromIndex()
                 ->filterable()
@@ -793,15 +793,10 @@ class AppraisalJob extends Resource
         if ($request instanceof ActionRequest) {
             return true;
         }
-        if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
-            return false;
-        }
         $user = $request->user();
         return $user->isAppraiser()
-            && (
-                $this->resource->status != \App\Enums\AppraisalJobStatus::Completed->value
-                || $this->resource->status != \App\Enums\AppraisalJobStatus::Cancelled->value
-            )
+            && $this->resource->status != \App\Enums\AppraisalJobStatus::Completed->value
+            && $this->resource->status != \App\Enums\AppraisalJobStatus::Cancelled->value
             && $this->resource->appraiser_id == $user->id;
     }
 

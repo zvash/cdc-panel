@@ -26,6 +26,7 @@ class MonthlyCompletedJobs extends Trend
                 appraisal_jobs.id,
                 appraisal_jobs.client_id,
                 appraisal_jobs.office_id,
+                appraisal_jobs.appraiser_id,
                 appraisal_jobs.appraisal_type_id,
                 appraisal_jobs.created_at,
                 appraisal_jobs.completed_at
