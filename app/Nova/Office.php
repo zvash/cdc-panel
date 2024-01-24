@@ -80,7 +80,7 @@ class Office extends Resource
                 ->required(),
 
             PhoneNumber::make('Phone')
-                ->countries(['CA', 'US'])
+                ->countries(['INTERNATIONAL', 'CA', 'US'])
                 ->rules('nullable')
                 ->nullable(),
 

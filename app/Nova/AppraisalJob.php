@@ -467,7 +467,7 @@ class AppraisalJob extends Resource
                 ->hideFromIndex()
                 ->nullable()
                 ->rules('nullable')
-                ->countries(['CA', 'US']),
+                ->countries(['INTERNATIONAL', 'CA', 'US']),
         ]);
     }
 

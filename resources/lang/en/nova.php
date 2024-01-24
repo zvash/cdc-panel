@@ -173,12 +173,7 @@ return [
     */
 
     'validation' => [
-        'seoable' => [
-            'accepted' => 'The :title resource already has a seo object.',
-        ],
-        'email' => [
-            'accepted' => 'The Email, Date of birth or Last name aren\'t unique, System find a patient with exact information.',
-        ],
+        'phone' => 'The field is not a valid phone number.',
     ],
 
 ];
