@@ -14,15 +14,27 @@ use Illuminate\Support\Facades\Log;
 use Konsulting\NovaActionButtons\ShowAsButton;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
+use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
 class PutAppraisalJobOnHold extends Action
 {
     use InteractsWithQueue, Queueable, ShowAsButton;
 
+    /**
+     * @var AppraisalJob $model
+     */
+    public $model;
+
     public function name()
     {
         return 'Hold';
+    }
+
+    public function setModel($model): static
+    {
+        $this->model = $model;
+        return $this;
     }
 
     /**
@@ -39,7 +51,11 @@ class PutAppraisalJobOnHold extends Action
         if ($user->hasManagementAccess()) {
             DB::beginTransaction();
             try {
-                $model->setAttribute('is_on_hold', true)->save();
+                $model->setAttribute('is_on_hold', true);
+                if ($fields->on_hold_until) {
+                    $model->setAttribute('on_hold_until', $fields->on_hold_until);
+                }
+                $model->save();
                 AppraisalJobOnHoldHistory::query()
                     ->create([
                         'appraisal_job_id' => $model->id,
@@ -65,6 +81,11 @@ class PutAppraisalJobOnHold extends Action
      */
     public function fields(NovaRequest $request)
     {
-        return [];
+        return [
+            Date::make('On Hold Until', 'on_hold_until')
+                ->nullable()
+                ->rules('nullable', 'after:today')
+                ->default($this->model?->on_hold_until),
+        ];
     }
 }

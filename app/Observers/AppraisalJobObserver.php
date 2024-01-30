@@ -87,15 +87,18 @@ class AppraisalJobObserver
         }
 
         $this->handleAppraiserAssignment($appraisalJob, $saved);
-
+        $user = auth()->user();
+        if (!$user) {
+            $user = User::query()->find($appraisalJob->created_by);
+        }
         /** @var \App\Models\AppraisalJobChangeLog $latestLog */
         $latestLog = $this->getLatestChangeLog($appraisalJob);
         $this->updateLastChangeLog($latestLog);
         $action = $this->determineAction($changedFields);
-        $description = "Appraisal job was {$action} by {$this->getLinkToTheAuthenticatedUser()}.";
+        $description = "Appraisal job was {$action} by {$this->getLinkToTheAuthenticatedUser($appraisalJob)}.";
         $changeLog = AppraisalJobChangeLog::query()->create([
             'appraisal_job_id' => $appraisalJob->id,
-            'user_id' => auth()->user()->id,
+            'user_id' => $user->id,
             'action' => $action,
             'description' => $description,
         ]);
@@ -106,9 +109,9 @@ class AppraisalJobObserver
             $secondLatestLog = $this->getLatestValidLogBeforePuttingTheJobOnHold($appraisalJob);
             AppraisalJobChangeLog::query()->create([
                 'appraisal_job_id' => $appraisalJob->id,
-                'user_id' => auth()->user()->id,
+                'user_id' => $user->id,
                 'action' => $secondLatestLog->action,
-                'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser()}",
+                'description' => "Appraisal job went back to \"{$secondLatestLog->action}\" by {$this->getLinkToTheAuthenticatedUser($appraisalJob)}",
             ]);
         }
     }
@@ -127,9 +130,12 @@ class AppraisalJobObserver
     }
 
     private
-    function getLinkToTheAuthenticatedUser(): string
+    function getLinkToTheAuthenticatedUser(AppraisalJob $appraisalJob): string
     {
         $user = auth()->user();
+        if (!$user) {
+            $user = User::query()->find($appraisalJob->created_by);
+        }
         return "<a href='/resources/users/{$user->id}' target='_blank'>{$user->name}</a>";
     }
 

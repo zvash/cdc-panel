@@ -41,9 +41,13 @@ use Dniccum\PhoneNumber\PhoneNumber;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Files;
 use Flatroy\FieldProgressbar\FieldProgressbar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Laravel\Nova\Fields\Badge;
 use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\File;
@@ -104,6 +108,22 @@ class AppraisalJob extends Resource
         return 'All Jobs';
     }
 
+    public static function afterValidation(NovaRequest $request, $validator)
+    {
+        $ensureUniqueAddress = $request->get('ensure_unique_address', false);
+        $address = $request->get('property_address', null);
+        if ($ensureUniqueAddress && $address) {
+            $jobs = \App\Models\AppraisalJob::query()->where('property_address', $address);
+            if ($request->resourceId) {
+                $jobs->where('id', '!=', $request->resourceId);
+            }
+            Log::info('count', [$jobs->count()]);
+            if ($jobs->count() > 0) {
+                $validator->errors()->add('property_address', 'The property address must be unique.');
+            }
+        }
+    }
+
     public static function createButtonLabel()
     {
         return 'Create Job';
@@ -128,7 +148,7 @@ class AppraisalJob extends Resource
     public function fields(NovaRequest $request): array
     {
         return [
-            $this->orderInformation(),
+            $this->orderInformation($request),
 
             $this->propertyAddress(),
 
@@ -142,7 +162,7 @@ class AppraisalJob extends Resource
         ];
     }
 
-    public function orderInformation(): Panel
+    public function orderInformation(NovaRequest $request): Panel
     {
         return $this->panel('Order Information', [
             ID::make()->sortable(),
@@ -322,6 +342,8 @@ class AppraisalJob extends Resource
 
             Text::make('File Number', 'reference_number')
                 ->filterable()
+                ->creationRules('unique:appraisal_jobs,reference_number,NULL,id,client_id,' . $request->client)
+                ->updateRules('unique:appraisal_jobs,reference_number,{{resourceId}},id,client_id,' . $request->client)
                 ->hideFromIndex(),
 
             Text::make('Lender')
@@ -447,6 +469,12 @@ class AppraisalJob extends Resource
                 ->required()
                 ->rules('required')
                 ->hideFromIndex(),
+
+            Boolean::make('Ensure Unique Address', 'ensure_unique_address')
+                ->hideFromIndex()
+                ->hideFromDetail()
+                ->nullable()
+                ->default(true),
 
 //            Text::make('Postal Code', 'property_postal_code')
 //                ->rules('nullable', new PostalCodeOrNotAvailable())
@@ -576,6 +604,7 @@ class AppraisalJob extends Resource
                 }),
             (new PutAppraisalJobOnHold())
                 ->exceptOnIndex()
+                ->setModel($this->resource)
                 ->showAsButton()
                 ->confirmText(__('nova.actions.put_on_hold.confirm_text'))
                 ->confirmButtonText(__('nova.actions.put_on_hold.confirm_button'))

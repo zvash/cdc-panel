@@ -44,7 +44,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         parent::boot();
 
         \App\Models\User::observe(UserObserver::class);
-        \App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
+        //\App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
         \App\Models\AppraisalJobAssignment::Observe(AppraisalJobAssignmentObserver::class);
 
         Nova::withoutThemeSwitcher();

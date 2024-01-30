@@ -38,7 +38,9 @@ class ResumeAppraisalJob extends Action
         if ($user->hasManagementAccess()) {
             DB::beginTransaction();
             try {
-                $model->setAttribute('is_on_hold', false)->save();
+                $model->setAttribute('is_on_hold', false)
+                    ->setAttribute('on_hold_until', null)
+                    ->save();
                 AppraisalJobOnHoldHistory::query()
                     ->create([
                         'appraisal_job_id' => $model->id,

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Observers\AppraisalJobObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \App\Models\AppraisalJob::Observe(AppraisalJobObserver::class);
     }
 }
