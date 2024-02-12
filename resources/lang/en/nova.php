@@ -67,6 +67,11 @@ return [
             'confirm_button' => 'Yes',
             'cancel_button' => 'Cancel',
         ],
+        'reinstate' => [
+            'confirm_text' => 'Are you sure you want to reinstate this job?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*

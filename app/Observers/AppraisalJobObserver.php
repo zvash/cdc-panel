@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalJob;
 use App\Models\AppraisalJobChangeLog;
 use App\Models\AppraisalJobFile;
@@ -176,13 +177,21 @@ class AppraisalJobObserver
             }
         }
 
-        if (array_key_exists('appraiser_id', $changedFields)) {
-            if ($changedFields['appraiser_id']['old_value'] == null) {
-                return 'assigned and put in progress';
-            } else if ($changedFields['appraiser_id']['new_value'] == null) {
-                return 'sent back to pending when assignment removed';
-            } else {
-                return 'reassigned';
+        if (
+            !array_key_exists('status', $changedFields)
+            || (
+                array_key_exists('status', $changedFields)
+                && $changedFields['status']['old_value'] != AppraisalJobStatus::Cancelled->value
+            )
+        ) {
+            if (array_key_exists('appraiser_id', $changedFields)) {
+                if ($changedFields['appraiser_id']['old_value'] == null) {
+                    return 'assigned and put in progress';
+                } else if ($changedFields['appraiser_id']['new_value'] == null) {
+                    return 'sent back to pending when assignment removed';
+                } else {
+                    return 'reassigned';
+                }
             }
         }
 
@@ -193,6 +202,9 @@ class AppraisalJobObserver
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::Pending) {
                 if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Assigned->value) {
                     return 'sent back to pending when rejected';
+                }
+                if ($changedFields['status']['old_value'] == \App\Enums\AppraisalJobStatus::Cancelled->value) {
+                    return 'reinstated';
                 }
             }
             if ($changedFields['status']['new_value'] == \App\Enums\AppraisalJobStatus::InProgress) {

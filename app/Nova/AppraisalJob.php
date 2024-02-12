@@ -11,6 +11,7 @@ use App\Nova\Actions\DropAppraisalJob;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\PutJobInReview;
+use App\Nova\Actions\Reinstate;
 use App\Nova\Actions\RejectAfterReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
@@ -724,6 +725,19 @@ class AppraisalJob extends Resource
                 ->canRun(function () use ($request) {
                     return $this->jobCanBeMarkedAsCancelledByCurrentUser($request);
                 }),
+
+            (new Reinstate())
+                ->exceptOnIndex()
+                ->confirmText(__('nova.actions.reinstate.confirm_text'))
+                ->confirmButtonText(__('nova.actions.reinstate.confirm_button'))
+                ->cancelButtonText(__('nova.actions.reinstate.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->canReinstateJobByCurrentUser($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->canReinstateJobByCurrentUser($request);
+                }),
         ];
     }
 
@@ -865,6 +879,20 @@ class AppraisalJob extends Resource
         $user = $request->user();
         $user = \App\Models\User::query()->find($user->id);
         return $this->resource->status != AppraisalJobStatus::Cancelled->value && $user->hasManagementAccess();
+    }
+
+    /**
+     * @param NovaRequest $request
+     * @return bool
+     */
+    private function canReinstateJobByCurrentUser(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        $user = $request->user();
+        $user = \App\Models\User::query()->find($user->id);
+        return $this->resource->status == AppraisalJobStatus::Cancelled->value && $user->hasManagementAccess();
     }
 
     private function userCanRejectJob(NovaRequest $request): bool
