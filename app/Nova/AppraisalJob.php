@@ -14,6 +14,7 @@ use App\Nova\Actions\PutJobInReview;
 use App\Nova\Actions\RejectAfterReview;
 use App\Nova\Actions\RespondToAssignment;
 use App\Nova\Actions\ResumeAppraisalJob;
+use App\Nova\CustomFields\GoogleAutocompleteWithBroadcast;
 use App\Nova\Lenses\AppraiserInvoice;
 use App\Nova\Lenses\AppraiserMonthlyInvoice;
 use App\Nova\Lenses\AssignedAppraisalJobs;
