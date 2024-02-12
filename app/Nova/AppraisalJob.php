@@ -342,8 +342,8 @@ class AppraisalJob extends Resource
 
             Text::make('File Number', 'reference_number')
                 ->filterable()
-                ->creationRules('unique:appraisal_jobs,reference_number,NULL,id,client_id,' . $request->client)
-                ->updateRules('unique:appraisal_jobs,reference_number,{{resourceId}},id,client_id,' . $request->client)
+                ->creationRules('unique:appraisal_jobs,reference_number')
+                ->updateRules('unique:appraisal_jobs,reference_number,{{resourceId}}')
                 ->hideFromIndex(),
 
             Text::make('Lender')
