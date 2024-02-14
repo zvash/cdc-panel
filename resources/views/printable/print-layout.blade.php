@@ -31,7 +31,13 @@
         }
 
         tr:nth-child(even) {
-            background-color: #ddf0ff;
+            background-color: rgba(201, 216, 239, 0.1);
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgb(201, 216, 239);
         }
     </style>
 
