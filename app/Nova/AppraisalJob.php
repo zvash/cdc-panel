@@ -414,9 +414,9 @@ class AppraisalJob extends Resource
                 ->hideFromIndex()
                 ->displayUsingLabels(),
 
-            Select::make('Payment Status')
-                ->options(\App\Enums\PaymentStatus::array())
-                ->hideFromIndex()
+            Select::make('Payment', 'payment_status')
+                ->options(array_flip(\App\Enums\PaymentStatus::array()))
+                ->default(\App\Enums\PaymentStatus::Unpaid->value)
                 ->displayUsingLabels(),
 
             Text::make('Invoice Name')

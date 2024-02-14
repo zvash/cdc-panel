@@ -102,6 +102,10 @@ trait AppraisalJobLensIndex
                 ->withIcons()
                 ->exceptOnForms(),
 
+            Select::make('Payment', 'payment_status')
+                ->options(array_flip(\App\Enums\PaymentStatus::array()))
+                ->displayUsingLabels(),
+
             //filters
             Select::make('Appraiser', 'appraiser_id')
                 ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
