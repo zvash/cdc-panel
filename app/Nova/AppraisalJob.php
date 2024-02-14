@@ -394,6 +394,17 @@ class AppraisalJob extends Resource
                 ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
 
             Text::make('Commission (%)', 'commission')
+                ->dependsOnCreating(['appraiser_id'], function (Text $field, NovaRequest $request, FormData $formData) {
+                    $appraiser = \App\Models\User::query()->find($formData->appraiser_id);
+                    $resource = $formData->resource(AppraisalJob::uriKey());
+                    if ($appraiser && $appraiser->commission) {
+                        $field->value = $appraiser->commission;
+                    } else if ($resource && $resource->reviewer_commission) {
+                        $field->value = $formData->commission;
+                    } else {
+                        $field->value = null;
+                    }
+                })
                 ->hideFromIndex()
                 ->nullable()
                 ->displayUsing(function ($value) {
@@ -402,6 +413,17 @@ class AppraisalJob extends Resource
                 ->rules('nullable', 'numeric', 'min:0', 'max:100'),
 
             Text::make('Reviewer Commission (%)', 'reviewer_commission')
+                ->dependsOnCreating(['reviewer_id'], function (Text $field, NovaRequest $request, FormData $formData) {
+                    $appraiser = \App\Models\User::query()->find($formData->reviewer_id);
+                    $resource = $formData->resource(AppraisalJob::uriKey());
+                    if ($appraiser && $appraiser->reviewer_commission) {
+                        $field->value = $appraiser->reviewer_commission;
+                    } else if ($resource && $resource->reviewer_commission) {
+                        $field->value = $resource->reviewer_commission;
+                    } else {
+                        $field->value = null;
+                    }
+                })
                 ->hideFromIndex()
                 ->nullable()
                 ->displayUsing(function ($value) {
