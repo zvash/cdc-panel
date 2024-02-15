@@ -11,6 +11,7 @@ use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Http\Requests\ActionRequest;
 use Laravel\Nova\Http\Requests\LensRequest;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Lenses\Lens;
@@ -168,7 +169,7 @@ class AppraiserMonthlyInvoice extends Lens
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')
                 ->select('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
-                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fee) AS DECIMAL(10,2)) as appraiser_fee, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
+                ->selectRaw('id, CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fee) AS DECIMAL(10,2)) as appraiser_fee, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
                 ->groupBy('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->orderBy('invoice_number', 'desc')
         ));
@@ -183,6 +184,7 @@ class AppraiserMonthlyInvoice extends Lens
     public function fields(NovaRequest $request)
     {
         return [
+            ID::hidden(),
             Text::make('Invoice Number', 'invoice_number')->sortable(),
             Select::make('Year', 'completed_at_year')
                 ->options([
@@ -232,11 +234,15 @@ class AppraiserMonthlyInvoice extends Lens
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
 
-            Text::make('PDF', 'appraiser_id')
+            Text::make('', 'appraiser_id')
                 ->displayUsing(function ($value) {
-                    //return '<a href="/pdf/appraiser-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '" class="no-underline dim font-bold">Download</a>';
                     return '<div class="shrink-0"><a size="md" class="shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold shadow rounded focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring bg-primary-500 hover:bg-primary-400 active:bg-primary-600 text-white dark:text-gray-800 inline-flex items-center font-bold px-4 h-9 text-sm shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold" href="/pdf/appraiser-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '"><span class="hidden md:inline-block">PDF</span><span class="inline-block md:hidden">PDF</span></a></div>';
                 })->asHtml(),
+
+//            Text::make('', 'appraiser_id')
+//                ->displayUsing(function ($value) {
+//                    return '<div class="shrink-0"><a size="md" class="shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold shadow rounded focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring bg-primary-500 hover:bg-primary-400 active:bg-primary-600 text-white dark:text-gray-800 inline-flex items-center font-bold px-4 h-9 text-sm shrink-0 h-9 px-4 focus:outline-none ring-primary-200 dark:ring-gray-600 focus:ring text-white dark:text-gray-800 inline-flex items-center font-bold" href="/paid/appraiser-invoice/' . $value . '/year/' . $this->completed_at_year . '/month/' . $this->completed_at_month . '"><span class="hidden md:inline-block">Paid</span><span class="inline-block md:hidden">Paid</span></a></div>';
+//                })->asHtml(),
 
             //filters
             Select::make('Appraiser', 'appraiser_id')
@@ -300,7 +306,15 @@ class AppraiserMonthlyInvoice extends Lens
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        return [
+            (new \App\Nova\Actions\Paid($this->resource))
+                ->showInline()
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    $q = $request->findModelQuery($request->resources);
+                    return optional($q->first());
+                }),
+        ];
     }
 
     /**
