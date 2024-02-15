@@ -5,10 +5,12 @@ namespace App\Nova\Lenses;
 use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\Client;
+use App\Nova\Filters\ProvinceFilter;
 use Carbon\Carbon;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\LensRequest;
@@ -82,6 +84,22 @@ class MonthlyRevenueInvoice extends Lens
                         ->from('provinces')
                         ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
                         ->whereColumn('provinces.name', 'appraisal_jobs.province'),
+                    'qst' => fn($query) => $query->select('qst')
+                        ->from('provinces')
+                        ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
+                        ->whereColumn('provinces.name', 'appraisal_jobs.province'),
+                    'gst' => fn($query) => $query->select('gst')
+                        ->from('provinces')
+                        ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
+                        ->whereColumn('provinces.name', 'appraisal_jobs.province'),
+                    'hst' => fn($query) => $query->select('hst')
+                        ->from('provinces')
+                        ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
+                        ->whereColumn('provinces.name', 'appraisal_jobs.province'),
+                    'pst' => fn($query) => $query->select('pst')
+                        ->from('provinces')
+                        ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
+                        ->whereColumn('provinces.name', 'appraisal_jobs.province'),
                     'cdc_fee_with_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100 + fee_quoted'),
                     'cdc_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100'),
                 ])
@@ -98,8 +116,8 @@ class MonthlyRevenueInvoice extends Lens
                 })
                 , 'appraisal_jobs'
             )->select('invoice_number',)
-                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) AS fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) AS cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) AS cdc_tax, completed_at_year, completed_at_month')
-                ->groupBy('invoice_number', 'completed_at_year', 'completed_at_month')
+                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) AS fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) AS cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) AS cdc_tax, completed_at_year, completed_at_month, qst, gst, hst, pst')
+                ->groupBy('invoice_number', 'completed_at_year', 'completed_at_month', 'qst', 'gst', 'hst', 'pst')
                 ->orderBy('invoice_number', 'desc')
         ));
     }
@@ -153,6 +171,34 @@ class MonthlyRevenueInvoice extends Lens
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
 
+            Number::make('QST')
+                ->displayUsing(function ($value) {
+                    return $value . '%';
+                })->step(0.001)
+                ->min(0)
+                ->max(100),
+
+            Number::make('PST')
+                ->displayUsing(function ($value) {
+                    return $value . '%';
+                })->step(0.001)
+                ->min(0)
+                ->max(100),
+
+            Number::make('GST')
+                ->displayUsing(function ($value) {
+                    return $value . '%';
+                })->step(0.001)
+                ->min(0)
+                ->max(100),
+
+            Number::make('HST')
+                ->displayUsing(function ($value) {
+                    return $value . '%';
+                })->step(0.001)
+                ->min(0)
+                ->max(100),
+
             //filters
             Select::make('Appraisal Type', 'appraisal_type_id')
                 ->options([null => '-'] + AppraisalType::pluck('name', 'id')->toArray())
@@ -194,7 +240,9 @@ class MonthlyRevenueInvoice extends Lens
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            new ProvinceFilter(),
+        ];
     }
 
     /**

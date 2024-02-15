@@ -9,6 +9,14 @@ class ProvinceTax extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'province_id',
+        'gst',
+        'hst',
+        'pst',
+        'qst',
+    ];
+
     public function province()
     {
         return $this->belongsTo(Province::class);

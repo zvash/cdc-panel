@@ -78,6 +78,13 @@ class ProvinceTax extends Resource
                 ->options(\App\Models\Province::all()->pluck('name', 'id'))
                 ->displayUsingLabels(),
 
+            Number::make('QST')
+                ->displayUsing(function ($value) {
+                    return $value . '%';
+                })->step(0.001)
+                ->min(0)
+                ->max(100),
+
             Number::make('PST')
                 ->displayUsing(function ($value) {
                     return $value . '%';
