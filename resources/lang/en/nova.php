@@ -105,6 +105,9 @@ return [
         'completed_appraisal_jobs' => [
             'name' => 'Completed Jobs',
         ],
+        'canceled_jobs' => [
+            'name' => 'Canceled Jobs',
+        ],
         'on_hold_appraisal_jobs' => [
             'name' => 'On Hold Jobs',
         ],

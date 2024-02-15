@@ -31,11 +31,6 @@ class CompletedAppraisalJobs extends Lens
      *
      * @var array
      */
-    /**
-     * The columns that should be searched.
-     *
-     * @var array
-     */
     public static $search = [
         'id',
         'appraisalType.name',

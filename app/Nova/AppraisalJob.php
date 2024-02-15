@@ -19,6 +19,7 @@ use App\Nova\CustomFields\GoogleAutocompleteWithBroadcast;
 use App\Nova\Lenses\AppraiserInvoice;
 use App\Nova\Lenses\AppraiserMonthlyInvoice;
 use App\Nova\Lenses\AssignedAppraisalJobs;
+use App\Nova\Lenses\CanceledJobs;
 use App\Nova\Lenses\ClientInvoice;
 use App\Nova\Lenses\ClientMonthlyInvoice;
 use App\Nova\Lenses\CompletedAppraisalJobs;
@@ -577,6 +578,7 @@ class AppraisalJob extends Resource
             (new InReviewAppraisalJobs($this->resource)),
             (new OnHoldAppraisalJobs($this->resource)),
             (new CompletedAppraisalJobs($this->resource)),
+            (new CanceledJobs($this->resource)),
             (new AppraiserInvoice($this->resource)),
             (new ReviewerInvoice($this->resource)),
             (new ClientInvoice($this->resource)),

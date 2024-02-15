@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Nova\Client;
 use App\Nova\Invitation;
 use App\Nova\Lenses\AssignedAppraisalJobs;
+use App\Nova\Lenses\CanceledJobs;
 use App\Nova\Lenses\CompletedAppraisalJobs;
 use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
@@ -97,6 +98,17 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     }),
                 MenuItem::lens(AppraisalJob::class, InProgressAppraisalJobs::class),
                 MenuItem::lens(AppraisalJob::class, CompletedAppraisalJobs::class),
+                MenuItem::lens(AppraisalJob::class, CanceledJobs::class)
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Cancelled)->count();
+                        }
+                        return \App\Models\AppraisalJob::query()
+                            ->where('status', AppraisalJobStatus::Cancelled)->count();
+                    }),
 
             ])->icon('clipboard-list'),
 
