@@ -399,7 +399,7 @@ class AppraisalJob extends Resource
                     $resource = $formData->resource(AppraisalJob::uriKey());
                     if ($appraiser && $appraiser->commission) {
                         $field->value = $appraiser->commission;
-                    } else if ($resource && $resource->reviewer_commission) {
+                    } else if ($resource && $resource->commission) {
                         $field->value = $formData->commission;
                     } else {
                         $field->value = null;
@@ -421,7 +421,7 @@ class AppraisalJob extends Resource
                     } else if ($resource && $resource->reviewer_commission) {
                         $field->value = $resource->reviewer_commission;
                     } else {
-                        $field->value = null;
+                        $field->value = 10;
                     }
                 })
                 ->hideFromIndex()
