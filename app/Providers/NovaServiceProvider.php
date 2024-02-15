@@ -16,6 +16,7 @@ use App\Nova\Lenses\InProgressAppraisalJobs;
 use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
+use App\Nova\Lenses\OverdueJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Nova\Office;
 use App\Observers\AppraisalJobAssignmentObserver;
@@ -107,8 +108,28 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                             return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Cancelled)->count();
                         }
                         return \App\Models\AppraisalJob::query()
+                            ->where('appraiser_id', $request->user()->id)
                             ->where('status', AppraisalJobStatus::Cancelled)->count();
                     }),
+                MenuItem::lens(AppraisalJob::class, OverdueJobs::class)
+                    ->withBadge(function () use ($request) {
+                        if (!$request->user()) {
+                            return 0;
+                        }
+                        if ($request->user()->hasManagementAccess()) {
+                            return \App\Models\AppraisalJob::query()
+                                ->whereNotIn('status', [AppraisalJobStatus::Cancelled, AppraisalJobStatus::Completed])
+                                ->whereNotNull('due_date')
+                                ->whereDate('due_date', '<', now())
+                                ->count();
+                        }
+                        return \App\Models\AppraisalJob::query()
+                            ->whereNotIn('status', [AppraisalJobStatus::Cancelled, AppraisalJobStatus::Completed])
+                            ->whereNotNull('due_date')
+                            ->whereDate('due_date', '<', now())
+                            ->where('appraiser_id', $request->user()->id)
+                            ->count();
+                    }, 'warning'),
 
             ])->icon('clipboard-list'),
 

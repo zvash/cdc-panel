@@ -108,6 +108,9 @@ return [
         'canceled_jobs' => [
             'name' => 'Canceled Jobs',
         ],
+        'overdue_jobs' => [
+            'name' => 'Overdue Jobs',
+        ],
         'on_hold_appraisal_jobs' => [
             'name' => 'On Hold Jobs',
         ],

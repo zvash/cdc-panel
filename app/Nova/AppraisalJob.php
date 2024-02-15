@@ -28,6 +28,7 @@ use App\Nova\Lenses\InReviewAppraisalJobs;
 use App\Nova\Lenses\MonthlyRevenueInvoice;
 use App\Nova\Lenses\NotAssignedAppraisalJobs;
 use App\Nova\Lenses\OnHoldAppraisalJobs;
+use App\Nova\Lenses\OverdueJobs;
 use App\Nova\Lenses\RejectedAppraisalJobs;
 use App\Nova\Lenses\ReviewerInvoice;
 use App\Nova\Metrics\AverageAppraisalProcessDuration;
@@ -579,6 +580,7 @@ class AppraisalJob extends Resource
             (new OnHoldAppraisalJobs($this->resource)),
             (new CompletedAppraisalJobs($this->resource)),
             (new CanceledJobs($this->resource)),
+            (new OverdueJobs($this->resource)),
             (new AppraiserInvoice($this->resource)),
             (new ReviewerInvoice($this->resource)),
             (new ClientInvoice($this->resource)),
