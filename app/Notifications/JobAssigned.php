@@ -37,13 +37,19 @@ class JobAssigned extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $appName = env('APP_NAME');
-
+        $url = $this->generateJobUrl();
+        $lines = [
+            "You have been assigned a new job in the {$appName} space!",
+            'Please click the link below to view the job and accept or decline the assignment.'
+        ];
         return (new MailMessage())
             ->subject("{$appName} Job Assigned (Action Required)")
-            ->greeting("Hello $notifiable->name!")
-            ->line("You have been assigned a new job in the {$appName} Appraisal Management System!")
-            ->line('Please click the link below to view the job and accept or decline the assignment.')
-            ->action('Click here to view the job.', $this->generateJobUrl());
+            ->view('mailable.job', [
+                'url' => $url,
+                'notifiable' => $notifiable,
+                'content' => implode(' ', $lines),
+                'title' => "View Job",
+            ]);
     }
 
     private function generateJobUrl()

@@ -42,13 +42,20 @@ class JobAssignmentAccepted extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $creator = User::query()->find($this->appraisalJob->created_by);
+        $notifiable = User::query()->find($this->appraisalJob->created_by);
+        $url = $this->generateJobUrl();
+        $lines = [
+            "{$this->appraiser->name} has accepted the assignment for \"{$this->appraisalJob->property_address}\"!",
+            'Please click the link below to view the job details.'
+        ];
         return (new MailMessage)
             ->subject('Job Assignment Accepted')
-            ->greeting("Hello $creator->name!")
-            ->line("{$this->appraiser->name} has accepted the assignment for \"{$this->appraisalJob->property_address}\"!")
-            ->line('Please click the link below to view the job details.')
-            ->action('Click here to view the job.', $this->generateJobUrl());
+            ->view('mailable.job', [
+                'url' => $url,
+                'notifiable' => $notifiable,
+                'content' => implode(' ', $lines),
+                'title' => "View Job",
+            ]);
 
     }
 

@@ -90,7 +90,7 @@ class PasswordReset extends Notification
             ->subject(Lang::get('Reset Password Notification'))
             ->view('mailable.forgot-password', [
                 'url' => $url,
-                'user' => $this->user
+                'user' => $this->user,
             ]);
             //->line(Lang::get('You are receiving this email because we received a password reset request for your account.'))
             //->action(Lang::get('Reset Password'), $url)

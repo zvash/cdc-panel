@@ -93,15 +93,15 @@
             </a>
         </div>
         <div class="content" style="font-size: 12px; line-height: 15px; padding: 0 25px ;">
-            <div class="contact" style="height: 20px; font-weight: bold; line-height: 15px">Dear {{ $user->name }},
+            <div class="contact" style="height: 20px; font-weight: bold; line-height: 15px">Dear {{ $notifiable->name }},
             </div>
             <div class="main-content">
-                You have requested to reset your password. Hit the button to change your password:
+                {{ $content }}
             </div>
             <div style="text-align: center">
-                <a data-qa="verification_link"
-                   href="{{ $url }}"
-                   style="
+                <a
+                        href="{{ $url }}"
+                        style="
                 border: none;
                 color: #ffffff;
                 padding: 15px 20px;
@@ -118,15 +118,16 @@
                 height: 46px;
               "
                 >
-                    Change my password
+                    {{ $title }}
                 </a>
             </div>
             <div class="info-text">
                 <img src="https://d415fpsfyedhm.cloudfront.net/assets/images/email-verification/danger-circle_1.png"
                      width="16" style="margin: 5px 6px 0" height="16">
                 <div style="margin-top: 6px">
-                    This link is only be valid for <b>&nbsp;48 hours</b>. Didn't ask for change password? Please ignore
-                    this email.
+
+                    If you're having trouble clicking the "{{ $title }}" button, copy and paste the following URL into
+                    your web browser: {{ $url }}
                 </div>
             </div>
         </div>
