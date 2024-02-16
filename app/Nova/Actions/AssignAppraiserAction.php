@@ -55,6 +55,11 @@ class AssignAppraiserAction extends Action
             return Action::danger('An appraiser has already accepted this job.');
         }
         $selectedAppraisers = collect($fields->appraisers)->filter(fn($item) => $item == true)->keys();
+        $notAvailableAppraisers = \App\Models\UserOffDay::query()
+            ->whereIn('user_id', $selectedAppraisers->toArray())
+            ->whereDate('off_date', \Carbon\Carbon::today())
+            ->pluck('user_id');
+        $selectedAppraisers = $selectedAppraisers->diff($notAvailableAppraisers);
         AppraisalJobAssignment::query()->where('appraisal_job_id', $this->model->id)
             ->whereNotIn('appraiser_id', $selectedAppraisers)
             ->delete();
@@ -88,7 +93,7 @@ class AssignAppraiserAction extends Action
         $offeredTo = [];
         if ($this->model && $this->model->office != null) {
             //$appraisers = $this->model->office->getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
-            $appraisers = User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
+            $appraisers = User::getAvailableAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray();
             $offeredTo = AppraisalJobAssignment::query()
                 ->where('appraisal_job_id', $this->model->id)
                 ->pluck('appraisal_job_id', 'appraiser_id')

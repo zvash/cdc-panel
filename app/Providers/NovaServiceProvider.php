@@ -32,6 +32,7 @@ use Laravel\Nova\Menu\MenuItem;
 use Laravel\Nova\Menu\MenuSection;
 use Laravel\Nova\Nova;
 use Laravel\Nova\NovaApplicationServiceProvider;
+use Wdelfuego\NovaCalendar\NovaCalendar;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
@@ -145,26 +146,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                         return \App\Models\AppraisalJob::where('status', AppraisalJobStatus::Pending)
                             ->whereNull('appraiser_id')->count();
                     }),
-//                MenuItem::lens(AppraisalJob::class, RejectedAppraisalJobs::class)
-//                    ->canSee(function ($request) {
-//                        return $request->user()->hasManagementAccess();
-//                    })
-//                    ->withBadge(function () use ($request) {
-//                        if (!$request->user()) {
-//                            return 0;
-//                        }
-//                        if ($request->user()->hasManagementAccess()) {
-//                            return \App\Models\AppraisalJob::query()
-//                                ->where('status', AppraisalJobStatus::InProgress)
-//                                ->whereNotNull('reviewer_id')
-//                                ->count();
-//                        }
-//                        return \App\Models\AppraisalJob::query()
-//                            ->where('status', AppraisalJobStatus::InProgress)
-//                            ->whereNotNull('reviewer_id')
-//                            ->where('appraiser_id', $request->user()->id)
-//                            ->count();
-//                    }, 'danger'),
                 MenuItem::lens(AppraisalJob::class, InReviewAppraisalJobs::class)
                     ->canSee(function ($request) {
                         return $request->user()->isAppraiser();
@@ -242,6 +223,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                 MenuItem::resource(Office::class),
             ])->icon('office-building'),
 
+            MenuSection::make('Calendars', [
+                MenuItem::link('Off Days', NovaCalendar::pathToCalendar('availability'))
+            ])->icon('calendar'),
+
             MenuSection::make('Support', [
                 MenuItem::externalLink('Help', 'mailto:hamid@offerland.ca'),
             ])->icon('support'),
@@ -311,7 +296,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
      */
     public function tools()
     {
-        return [];
+        return [
+            new NovaCalendar('availability'),
+        ];
     }
 
     /**

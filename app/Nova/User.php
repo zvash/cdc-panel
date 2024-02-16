@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Nova\Actions\Availability;
 use App\Nova\Metrics\AverageResponseTime;
 use App\Nova\Metrics\CompletedJobsPerDay;
 use App\Traits\NovaResource\LimitsIndexQuery;
@@ -183,7 +184,7 @@ class User extends Resource
             ];
         }
 
-        if ($this->id &&  $request->user()->id == $this->id) {
+        if ($this->id && $request->user()->id == $this->id) {
             $user = \App\Models\User::query()->find($this->id);
             $currentRole = $user->roles->pluck('name')->last();
             if ($currentRole && !in_array($currentRole, $invitableRoles)) {
@@ -309,23 +310,13 @@ class User extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-//            (new InviteUserAction())
-//                ->setInviter($request->user())
-//                ->confirmText(__('nova.actions.invite_user.confirm_text'))
-//                ->confirmButtonText(__('nova.actions.invite_user.confirm_button'))
-//                ->cancelButtonText(__('nova.actions.invite_user.cancel_button'))
-//                ->standalone()
-//                ->showAsButton()
-//                ->canSee(function () use ($request) {
-//                    return $request->user()->isSupervisor()
-//                        || $request->user()->isSuperAdmin()
-//                        || $request->user()->isAdmin();
-//                })
-//                ->canRun(function () use ($request) {
-//                    return $request->user()->isSupervisor()
-//                        || $request->user()->isSuperAdmin()
-//                        || $request->user()->isAdmin();
-//                }),
+            (new Availability())
+                ->setUser($this->resource)
+                ->confirmText(__('nova.actions.update_off_days.confirm_text'))
+                ->confirmButtonText(__('nova.actions.update_off_days.confirm_button'))
+                ->cancelButtonText(__('nova.actions.update_off_days.cancel_button'))
+                ->showInline()
+                ->showAsButton(),
         ];
     }
 

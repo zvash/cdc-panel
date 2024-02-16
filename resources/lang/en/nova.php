@@ -72,6 +72,11 @@ return [
             'confirm_button' => 'Yes',
             'cancel_button' => 'Cancel',
         ],
+        'update_off_days' => [
+            'confirm_text' => 'Are you sure you want to update off days for this user?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*

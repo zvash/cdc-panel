@@ -51,7 +51,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'preferred_appraisal_types' => 'array',
-        'reviewers' => 'array',
+        'reviewers' => 'array'
     ];
 
     public static function getAllAppraisersWithRemainingCapacity()
@@ -60,6 +60,23 @@ class User extends Authenticatable
             ->withCount('appraisalJobs')
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'Appraiser');
+            })
+            ->get()
+            ->filter(function ($user) {
+                return $user->getRemainingCapacityAsInt() > 0;
+            });
+    }
+
+    public static function getAvailableAppraisersWithRemainingCapacity()
+    {
+        $today = now()->format('Y-m-d');
+        return User::query()
+            ->withCount('appraisalJobs')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'Appraiser');
+            })
+            ->whereDoesntHave('offDays', function ($query) use ($today) {
+                $query->whereDate('off_date', $today);
             })
             ->get()
             ->filter(function ($user) {
@@ -96,6 +113,11 @@ class User extends Authenticatable
     public function changeLogs(): HasMany
     {
         return $this->hasMany(AppraisalJobChangeLog::class);
+    }
+
+    public function offDays(): HasMany
+    {
+        return $this->hasMany(UserOffDay::class, 'user_id');
     }
 
     /**
