@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\PasswordReset;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -158,5 +159,10 @@ class User extends Authenticatable
             ->where('is_on_hold', false)
             ->where('status', \App\Enums\AppraisalJobStatus::InProgress)->count();
         return $this->capacity - $jobsInHandCount;
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new PasswordReset($token, $this));
     }
 }
