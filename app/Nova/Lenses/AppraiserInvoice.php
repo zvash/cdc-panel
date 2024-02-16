@@ -94,6 +94,7 @@ class AppraiserInvoice extends Lens
                 appraisal_jobs.reference_number,
                 appraisal_jobs.fee_quoted,
                 appraisal_jobs.payment_terms,
+                appraisal_jobs.payment_status,
                 appraisal_jobs.completed_at,
                 appraisal_jobs.commission as job_commission,
                 appraisal_jobs.reviewer_commission as job_reviewer_commission,
@@ -216,6 +217,8 @@ class AppraiserInvoice extends Lens
                 ->resolveUsing(function ($value) {
                     return '$' . round(($value * $this->province_tax / 100 + $value) * (($this->commission ?? 0) / 100), 2);
                 })
+                ->sortable(),
+            Text::make('Payment Status', 'payment_status')
                 ->sortable(),
             Text::make('Reviewer Commission', 'reviewer_commission')
                 ->displayUsing(fn($value) => ($value ?? 0) . '%')
