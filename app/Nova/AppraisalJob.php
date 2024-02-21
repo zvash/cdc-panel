@@ -8,6 +8,7 @@ use App\Nova\Actions\AddFile;
 use App\Nova\Actions\AssignAppraiserAction;
 use App\Nova\Actions\CancelAppraisalJob;
 use App\Nova\Actions\DropAppraisalJob;
+use App\Nova\Actions\MailCompletedJob;
 use App\Nova\Actions\MarkAsCompleted;
 use App\Nova\Actions\PutAppraisalJobOnHold;
 use App\Nova\Actions\PutJobInReview;
@@ -154,6 +155,10 @@ class AppraisalJob extends Resource
         return [
             $this->orderInformation($request),
 
+            $this->appraiserSection($request),
+
+            $this->reviewerSection($request),
+
             $this->propertyAddress(),
 
             $this->paymentInformation(),
@@ -255,20 +260,6 @@ class AppraisalJob extends Resource
                 ->exceptOnForms()
                 ->hideFromDetail()
                 ->hideFromIndex()
-                ->displayUsingLabels(),
-
-            Select::make('Appraiser', 'appraiser_id')
-                ->options([null => '-'] + \App\Models\User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray())
-                ->searchable()
-                ->onlyOnForms()
-                ->displayUsingLabels(),
-
-            Select::make('Reviewer', 'reviewer_id')
-                ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
-                        return $roles->whereIn('name', ['Appraiser']);
-                    })->pluck('name', 'id')->toArray())
-                ->searchable()
-                ->onlyOnForms()
                 ->displayUsingLabels(),
 
             BelongsTo::make('Appraiser', 'appraiser', User::class)
@@ -375,6 +366,68 @@ class AppraisalJob extends Resource
         ]);
     }
 
+    public function appraiserSection(): Panel
+    {
+        return $this->panel('Appraiser', [
+            Select::make('Appraiser', 'appraiser_id')
+                ->options([null => '-'] + \App\Models\User::getAllAppraisersWithRemainingCapacity()->pluck('name', 'id')->toArray())
+                ->searchable()
+                ->onlyOnForms()
+                ->displayUsingLabels(),
+
+            Text::make('Commission (%)', 'commission')
+                ->dependsOnCreating(['appraiser_id'], function (Text $field, NovaRequest $request, FormData $formData) {
+                    $appraiser = \App\Models\User::query()->find($formData->appraiser_id);
+                    $resource = $formData->resource(AppraisalJob::uriKey());
+                    if ($appraiser && $appraiser->commission) {
+                        $field->value = $appraiser->commission;
+                    } else if ($resource && $resource->commission) {
+                        $field->value = $formData->commission;
+                    } else {
+                        $field->value = null;
+                    }
+                })
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? "$value%" : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:100'),
+        ]);
+    }
+
+    public function reviewerSection(): Panel
+    {
+        return $this->panel('Reviewer', [
+            Select::make('Reviewer', 'reviewer_id')
+                ->options([null => '-'] + \App\Models\User::query()->whereHas('roles', function ($roles) {
+                        return $roles->whereIn('name', ['Appraiser']);
+                    })->pluck('name', 'id')->toArray())
+                ->searchable()
+                ->onlyOnForms()
+                ->displayUsingLabels(),
+
+            Text::make('Reviewer Commission (%)', 'reviewer_commission')
+                ->dependsOnCreating(['reviewer_id'], function (Text $field, NovaRequest $request, FormData $formData) {
+                    $appraiser = \App\Models\User::query()->find($formData->reviewer_id);
+                    $resource = $formData->resource(AppraisalJob::uriKey());
+                    if ($appraiser && $appraiser->reviewer_commission) {
+                        $field->value = $appraiser->reviewer_commission;
+                    } else if ($resource && $resource->reviewer_commission) {
+                        $field->value = $resource->reviewer_commission;
+                    } else {
+                        $field->value = 10;
+                    }
+                })
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? "$value%" : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:100.00'),
+        ]);
+    }
+
     public function paymentInformation(): Panel
     {
         return $this->panel('Payment Information', [
@@ -395,43 +448,6 @@ class AppraisalJob extends Resource
                 })
                 ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
 
-            Text::make('Commission (%)', 'commission')
-                ->dependsOnCreating(['appraiser_id'], function (Text $field, NovaRequest $request, FormData $formData) {
-                    $appraiser = \App\Models\User::query()->find($formData->appraiser_id);
-                    $resource = $formData->resource(AppraisalJob::uriKey());
-                    if ($appraiser && $appraiser->commission) {
-                        $field->value = $appraiser->commission;
-                    } else if ($resource && $resource->commission) {
-                        $field->value = $formData->commission;
-                    } else {
-                        $field->value = null;
-                    }
-                })
-                ->hideFromIndex()
-                ->nullable()
-                ->displayUsing(function ($value) {
-                    return $value ? "$value%" : '-';
-                })
-                ->rules('nullable', 'numeric', 'min:0', 'max:100'),
-
-            Text::make('Reviewer Commission (%)', 'reviewer_commission')
-                ->dependsOnCreating(['reviewer_id'], function (Text $field, NovaRequest $request, FormData $formData) {
-                    $appraiser = \App\Models\User::query()->find($formData->reviewer_id);
-                    $resource = $formData->resource(AppraisalJob::uriKey());
-                    if ($appraiser && $appraiser->reviewer_commission) {
-                        $field->value = $appraiser->reviewer_commission;
-                    } else if ($resource && $resource->reviewer_commission) {
-                        $field->value = $resource->reviewer_commission;
-                    } else {
-                        $field->value = 10;
-                    }
-                })
-                ->hideFromIndex()
-                ->nullable()
-                ->displayUsing(function ($value) {
-                    return $value ? "$value%" : '-';
-                })
-                ->rules('nullable', 'numeric', 'min:0', 'max:100.00'),
 
             Select::make('Payment Terms')
                 ->options(\App\Enums\PaymentTerm::array())
@@ -764,6 +780,19 @@ class AppraisalJob extends Resource
                 ->canRun(function () use ($request) {
                     return $this->canReinstateJobByCurrentUser($request);
                 }),
+
+            (new MailCompletedJob($this->resource))
+                ->onlyOnDetail()
+                ->confirmText(__('nova.actions.send_job_with_mail.confirm_text'))
+                ->confirmButtonText(__('nova.actions.send_job_with_mail.confirm_button'))
+                ->cancelButtonText(__('nova.actions.send_job_with_mail.cancel_button'))
+                ->showAsButton()
+                ->canSee(function () use ($request) {
+                    return $this->jobIsCompleted($request);
+                })
+                ->canRun(function () use ($request) {
+                    return $this->jobIsCompleted($request);
+                }),
         ];
     }
 
@@ -978,6 +1007,17 @@ class AppraisalJob extends Resource
                 ->where('appraiser_id', $user->id)
                 ->where('status', \App\Enums\AppraisalJobAssignmentStatus::Pending)
                 ->exists();
+    }
+
+    private function jobIsCompleted(NovaRequest $request): bool
+    {
+        if ($request instanceof ActionRequest) {
+            return true;
+        }
+        if ($this->resource->status != \App\Enums\AppraisalJobStatus::Completed->value) {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -77,6 +77,11 @@ return [
             'confirm_button' => 'Yes',
             'cancel_button' => 'Cancel',
         ],
+        'send_job_with_mail' => [
+            'confirm_text' => 'Are you sure you want to send this job with mail?',
+            'confirm_button' => 'Send',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*

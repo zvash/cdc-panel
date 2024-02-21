@@ -55,8 +55,8 @@ class MonthlyRevenueInvoice extends Lens
     /**
      * Get the query builder / paginator for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\LensRequest  $request
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param \Laravel\Nova\Http\Requests\LensRequest $request
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @return mixed
      */
     public static function query(LensRequest $request, $query)
@@ -125,7 +125,7 @@ class MonthlyRevenueInvoice extends Lens
     /**
      * Get the fields available to the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function fields(NovaRequest $request)
@@ -173,31 +173,23 @@ class MonthlyRevenueInvoice extends Lens
 
             Number::make('QST')
                 ->displayUsing(function ($value) {
-                    return $value . '%';
-                })->step(0.001)
-                ->min(0)
-                ->max(100),
+                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                }),
 
             Number::make('PST')
                 ->displayUsing(function ($value) {
-                    return $value . '%';
-                })->step(0.001)
-                ->min(0)
-                ->max(100),
+                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                }),
 
             Number::make('GST')
                 ->displayUsing(function ($value) {
-                    return $value . '%';
-                })->step(0.001)
-                ->min(0)
-                ->max(100),
+                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                }),
 
             Number::make('HST')
                 ->displayUsing(function ($value) {
-                    return $value . '%';
-                })->step(0.001)
-                ->min(0)
-                ->max(100),
+                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                }),
 
             //filters
             Select::make('Appraisal Type', 'appraisal_type_id')
@@ -224,7 +216,7 @@ class MonthlyRevenueInvoice extends Lens
     /**
      * Get the cards available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function cards(NovaRequest $request)
@@ -235,7 +227,7 @@ class MonthlyRevenueInvoice extends Lens
     /**
      * Get the filters available for the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function filters(NovaRequest $request)
@@ -248,7 +240,7 @@ class MonthlyRevenueInvoice extends Lens
     /**
      * Get the actions available on the lens.
      *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param \Laravel\Nova\Http\Requests\NovaRequest $request
      * @return array
      */
     public function actions(NovaRequest $request)
