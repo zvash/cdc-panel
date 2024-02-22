@@ -155,6 +155,8 @@ class AppraisalJob extends Resource
         return [
             $this->orderInformation($request),
 
+            $this->adminSection($request),
+
             $this->appraiserSection($request),
 
             $this->reviewerSection($request),
@@ -250,6 +252,22 @@ class AppraisalJob extends Resource
                 ->onlyOnForms()
                 ->options(\App\Models\Office::pluck('city', 'id'))
                 ->displayUsingLabels(),
+
+            Select::make('Province (for tax)', 'province')
+                ->searchable()
+                ->hideFromIndex()
+                ->required()
+                ->rules('required')
+                ->options(\App\Models\Province::pluck('name', 'name'))
+                ->displayUsingLabels(),
+
+            Text::make('Fee Quoted')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
 
             //for filtering
             Select::make('Appraisers', 'appraiser_id')
@@ -366,6 +384,62 @@ class AppraisalJob extends Resource
         ]);
     }
 
+    public function adminSection(NovaRequest $request): Panel
+    {
+        if (!$request->user()->hasManagementAccess()) {
+            return $this->panel('Admin', []);
+        }
+        return $this->panel('Admin', [
+            Text::make('Admin Fee', 'admin_fee')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
+            Text::make('Admin Fee Tax', 'admin_fee_tax')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->readonly()
+                ->dependsOn(['admin_fee', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->admin_fee || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->admin_fee * ($provinceTax?->total / 100);
+                }),
+
+            Text::make('Admin Fee Total', 'admin_fee_total')
+                ->hideFromIndex()
+                ->nullable()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->readonly()
+                ->dependsOn(['admin_fee', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->admin_fee || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->admin_fee * (1 + ($provinceTax?->total / 100));
+                }),
+
+            Date::make('Admin Paid At', 'admin_paid_at')
+                ->hideFromIndex()
+                ->nullable(),
+
+        ]);
+    }
+
     public function appraiserSection(): Panel
     {
         return $this->panel('Appraiser', [
@@ -393,6 +467,62 @@ class AppraisalJob extends Resource
                     return $value ? "$value%" : '-';
                 })
                 ->rules('nullable', 'numeric', 'min:0', 'max:100'),
+
+            Text::make('Appraiser Fee', 'appraiser_fee')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'commission'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->commission) {
+                        $field->value = null;
+                        return;
+                    }
+                    $field->value = $formData->fee_quoted * ($formData->commission / 100);
+                }),
+
+            Text::make('Appraiser Fee Tax', 'appraiser_fee_tax')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'commission', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->commission || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->fee_quoted * ($formData->commission / 100) * ($provinceTax?->total / 100);
+                }),
+
+            Text::make('Appraiser Fee Total', 'appraiser_fee_total')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'commission', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->commission || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->fee_quoted * ($formData->commission / 100) * (1 + ($provinceTax?->total / 100));
+                }),
+
+            Date::make('Appraiser Paid At', 'appraiser_paid_at')
+                ->hideFromIndex()
+                ->readonly()
+                ->nullable(),
         ]);
     }
 
@@ -425,28 +555,68 @@ class AppraisalJob extends Resource
                     return $value ? "$value%" : '-';
                 })
                 ->rules('nullable', 'numeric', 'min:0', 'max:100.00'),
+
+            Text::make('Reviewer Fee', 'reviewer_fee')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'reviewer_commission'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->reviewer_commission) {
+                        $field->value = null;
+                        return;
+                    }
+                    $field->value = $formData->fee_quoted * ($formData->reviewer_commission / 100);
+                }),
+
+            Text::make('Reviewer Fee Tax', 'reviewer_fee_tax')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'reviewer_commission', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->reviewer_commission || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->fee_quoted * ($formData->reviewer_commission / 100) * ($provinceTax?->total / 100);
+                }),
+
+            Text::make('Reviewer Fee Total', 'reviewer_fee_total')
+                ->hideFromIndex()
+                ->nullable()
+                ->readonly()
+                ->displayUsing(function ($value) {
+                    return $value ? '$' . number_format($value, 2) : '-';
+                })
+                ->dependsOn(['fee_quoted', 'reviewer_commission', 'province'], function ($field, NovaRequest $request, FormData $formData) {
+                    if (!$formData->fee_quoted || !$formData->reviewer_commission || !$formData->province) {
+                        $field->value = null;
+                        return;
+                    }
+                    $provinceTax = \App\Models\ProvinceTax::query()->whereHas('province', function ($query) use ($formData) {
+                        $query->where('name', $formData->province);
+                    })->first();
+                    $field->value = $formData->fee_quoted * ($formData->reviewer_commission / 100) * (1 + ($provinceTax?->total / 100));
+                }),
+
+            Date::make('Reviewer Paid At', 'reviewer_paid_at')
+                ->hideFromIndex()
+                ->readonly()
+                ->nullable(),
         ]);
     }
 
     public function paymentInformation(): Panel
     {
         return $this->panel('Payment Information', [
-
-            Select::make('Province (for tax)', 'province')
-                ->searchable()
-                ->hideFromIndex()
-                ->required()
-                ->rules('required')
-                ->options(\App\Models\Province::pluck('name', 'name'))
-                ->displayUsingLabels(),
-
-            Text::make('Fee Quoted')
-                ->hideFromIndex()
-                ->nullable()
-                ->displayUsing(function ($value) {
-                    return $value ? '$' . number_format($value, 2) : '-';
-                })
-                ->rules('nullable', 'numeric', 'min:0', 'max:999999.99'),
 
 
             Select::make('Payment Terms')

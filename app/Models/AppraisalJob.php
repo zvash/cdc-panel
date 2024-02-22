@@ -25,11 +25,24 @@ class AppraisalJob extends Model implements HasMedia
     protected $casts = [
         'due_date' => 'date',
         'completed_at' => 'datetime',
+        'appraiser_paid_at' => 'datetime',
+        'reviewer_paid_at' => 'datetime',
+        'admin_paid_at' => 'datetime',
     ];
 
     protected $appends = [
         'progress',
+        'admin_fee_tax',
+        'admin_fee_total',
+        'appraiser_fee',
+        'appraiser_fee_tax',
+        'appraiser_fee_total',
+        'reviewer_fee',
+        'reviewer_fee_tax',
+        'reviewer_fee_total',
     ];
+
+    private $taxRate = null;
 
     public function createdBy()
     {
@@ -162,5 +175,81 @@ class AppraisalJob extends Model implements HasMedia
             $progress = 1;
         }
         return $progress;
+    }
+
+    private function calculateFeePortion($fee, $commission): float
+    {
+        if (!$fee || !$commission) {
+            return 0;
+        }
+        return round($fee * ($commission / 100), 3);
+    }
+
+    private function calculateTaxPortion($fee, $taxRate): float
+    {
+        if (!$fee || !$taxRate) {
+            return 0;
+        }
+        return round($fee * ($taxRate / 100), 3);
+    }
+
+    private function calculateTotal($fee, $commission, $tax): float
+    {
+        $feePortion = $this->calculateFeePortion($fee, $commission);
+        $taxPortion = $this->calculateTaxPortion($fee, $tax);
+        return round($feePortion + $taxPortion, 3);
+    }
+
+    private function fetchTaxRate()
+    {
+        if ($this->taxRate !== null) {
+            return $this->taxRate;
+        }
+        if ($this->province) {
+            $provinceTax = ProvinceTax::query()->whereHas('province', function ($query) {
+                $query->where('name', $this->province);
+            })->first();
+            $this->taxRate = $provinceTax?->total;
+        }
+        return $this->taxRate ?? 0;
+    }
+    public function getAdminFeeTaxAttribute(): float
+    {
+        return $this->calculateTaxPortion($this->admin_fee, $this->fetchTaxRate());
+    }
+
+    public function getAdminFeeTotalAttribute(): float
+    {
+        return $this->calculateTotal($this->admin_fee, 100, $this->fetchTaxRate());
+    }
+
+    public function getAppraiserFeeAttribute(): float
+    {
+        return $this->calculateFeePortion($this->fee_quoted, $this->inferCommission());
+    }
+
+    public function getAppraiserFeeTaxAttribute(): float
+    {
+        return $this->calculateTaxPortion($this->fee_quoted, $this->fetchTaxRate());
+    }
+
+    public function getAppraiserFeeTotalAttribute(): float
+    {
+        return $this->calculateTotal($this->fee_quoted, $this->inferCommission(), $this->fetchTaxRate());
+    }
+
+    public function getReviewerFeeAttribute(): float
+    {
+        return $this->calculateFeePortion($this->fee_quoted, $this->inferReviewerCommission());
+    }
+
+    public function getReviewerFeeTaxAttribute(): float
+    {
+        return $this->calculateTaxPortion($this->fee_quoted, $this->fetchTaxRate());
+    }
+
+    public function getReviewerFeeTotalAttribute(): float
+    {
+        return $this->calculateTotal($this->fee_quoted, $this->inferReviewerCommission(), $this->fetchTaxRate());
     }
 }
