@@ -30,7 +30,7 @@ class Paid extends Action
      */
     public function handle(ActionFields $fields, Collection $models)
     {
-        //Log::info('Marking payment as paid', ['models' => $models->pluck('id')->toArray()]);
+        Log::info('Marking payment as paid', ['models' => $models->toArray()]);
         return Action::message('The payment has been marked as paid.');
     }
 

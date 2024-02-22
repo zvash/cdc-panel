@@ -82,6 +82,11 @@ return [
             'confirm_button' => 'Send',
             'cancel_button' => 'Cancel',
         ],
+        'paid' => [
+            'confirm_text' => 'Are you sure you want to mark all jobs linked to this invoice as Paid?',
+            'confirm_button' => 'Yes',
+            'cancel_button' => 'Cancel',
+        ],
     ],
 
     /*
