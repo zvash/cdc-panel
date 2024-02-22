@@ -176,7 +176,18 @@ class AppraisalJob extends Resource
     public function orderInformation(NovaRequest $request): Panel
     {
         return $this->panel('Order Information', [
-            ID::make()->sortable(),
+            ID::make()->sortable()
+            ->displayUsing(function ($value) {
+                if (
+                    $this->resource->status != AppraisalJobStatus::Completed->value
+                    && $this->resource->status != AppraisalJobStatus::Cancelled->value
+                    && $this->resource->due_date
+                    && $this->resource->due_date->isPast()
+                ) {
+                    return $value . ' ❗️';
+                }
+                return $value;
+            }),
 
             Select::make('Client', 'client_id')
                 ->options(\App\Models\Client::pluck('name', 'id'))

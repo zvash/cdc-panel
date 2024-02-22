@@ -2,6 +2,7 @@
 
 namespace App\Nova\Lenses\Traits;
 
+use App\Enums\AppraisalJobStatus;
 use App\Models\AppraisalType;
 use App\Nova\Filters\OfficeFilter;
 use App\Nova\User;
@@ -29,7 +30,18 @@ trait AppraisalJobLensIndex
     public function fields(NovaRequest $request)
     {
         return [
-            ID::make(Nova::__('ID'), 'id')->sortable(),
+            ID::make(Nova::__('ID'), 'id')->sortable()
+                ->displayUsing(function ($value) {
+                    if (
+                        $this->resource->status != AppraisalJobStatus::Completed->value
+                        && $this->resource->status != AppraisalJobStatus::Cancelled->value
+                        && $this->resource->due_date
+                        && $this->resource->due_date->isPast()
+                    ) {
+                        return $value . ' ❗️';
+                    }
+                    return $value;
+                }),
 
             Stack::make('Details', [
                 Line::make('Property Address')
