@@ -73,7 +73,7 @@ class MonthlyRevenueInvoice extends Lens
                     'office_id',
                     'appraiser_id',
                     'appraisal_type_id',
-                    'fee_quoted',
+                    'admin_fee',
                     'completed_at',
                 ])
                 ->addSelect([
@@ -100,12 +100,12 @@ class MonthlyRevenueInvoice extends Lens
                         ->from('provinces')
                         ->join('province_taxes', 'province_taxes.province_id', '=', 'provinces.id')
                         ->whereColumn('provinces.name', 'appraisal_jobs.province'),
-                    'cdc_fee_with_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100 + fee_quoted'),
-                    'cdc_tax' => fn($query) => $query->selectRaw('fee_quoted * province_tax / 100'),
+                    'cdc_fee_with_tax' => fn($query) => $query->selectRaw('admin_fee * province_tax / 100 + admin_fee'),
+                    'cdc_tax' => fn($query) => $query->selectRaw('admin_fee * province_tax / 100'),
                 ])
                 ->whereNotNull('completed_at')
                 ->whereNot('status', AppraisalJobStatus::Cancelled->value)
-                ->whereNotNull('fee_quoted')
+                ->whereNotNull('admin_fee')
                 ->whereNotNull('province')
                 ->where(function ($query) {
                     if (auth()->user()->hasManagementAccess()) {
@@ -116,7 +116,7 @@ class MonthlyRevenueInvoice extends Lens
                 })
                 , 'appraisal_jobs'
             )->select('invoice_number',)
-                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) AS fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) AS cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) AS cdc_tax, completed_at_year, completed_at_month, qst, gst, hst, pst')
+                ->selectRaw('CAST(SUM(admin_fee) AS DECIMAL(10,2)) AS admin_fee, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) AS cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) AS cdc_tax, completed_at_year, completed_at_month, qst, gst, hst, pst')
                 ->groupBy('invoice_number', 'completed_at_year', 'completed_at_month', 'qst', 'gst', 'hst', 'pst')
                 ->orderBy('invoice_number', 'desc')
         ));
@@ -161,7 +161,7 @@ class MonthlyRevenueInvoice extends Lens
                 ->filterable()
                 ->sortable(),
 
-            Currency::make('CDC Fee', 'fee_quoted')
+            Currency::make('CDC Fee', 'admin_fee')
                 ->resolveUsing(fn($value) => round($value, 2))
                 ->sortable(),
             Currency::make('CDC Tax', 'cdc_tax')
@@ -173,22 +173,22 @@ class MonthlyRevenueInvoice extends Lens
 
             Number::make('QST')
                 ->displayUsing(function ($value) {
-                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                    return '$' . round($this->resource->admin_fee * (1 + $value / 100.0), 2);
                 }),
 
             Number::make('PST')
                 ->displayUsing(function ($value) {
-                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                    return '$' . round($this->resource->admin_fee * (1 + $value / 100.0), 2);
                 }),
 
             Number::make('GST')
                 ->displayUsing(function ($value) {
-                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                    return '$' . round($this->resource->admin_fee * (1 + $value / 100.0), 2);
                 }),
 
             Number::make('HST')
                 ->displayUsing(function ($value) {
-                    return '$' . round($this->resource->fee_quoted * (1 + $value / 100.0), 2);
+                    return '$' . round($this->resource->admin_fee * (1 + $value / 100.0), 2);
                 }),
 
             //filters

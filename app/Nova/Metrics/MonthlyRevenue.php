@@ -29,7 +29,7 @@ class MonthlyRevenue extends Trend
                 appraisal_jobs.office_id,
                 appraisal_jobs.appraisal_type_id,
                 appraisal_jobs.created_at,
-                appraisal_jobs.fee_quoted * province_taxes.total / 100 + appraisal_jobs.fee_quoted AS cdc_fee_with_tax,
+                appraisal_jobs.admin_fee * province_taxes.total / 100 + appraisal_jobs.admin_fee AS cdc_fee_with_tax,
                 appraisal_jobs.completed_at
             FROM
                 appraisal_jobs
@@ -44,7 +44,7 @@ class MonthlyRevenue extends Trend
             WHERE
                 completed_at IS NOT NULL
             AND
-                fee_quoted IS NOT NULL
+                admin_fee IS NOT NULL
             AND
                 province IS NOT NULL
             AND
