@@ -57,6 +57,8 @@ class MailCompletedJob extends Action
         }
         $mail = new CompletedJobMail($this->appraisalJob, $clientName, $clientEmail, $files);
         Mail::to($clientEmail)->send($mail);
+        $this->appraisalJob->mail_sent_at = now();
+        $this->appraisalJob->save();
         return Action::message('Mail Sent!');
     }
 

@@ -74,6 +74,7 @@ class AppraisalJobObserver
         $changedFields = $this->getChangedFields($appraisalJob);
         if (
             !array_key_exists('is_on_hold', $changedFields)
+            && !array_key_exists('mail_sent_at', $changedFields)
             && !array_key_exists('appraiser_id', $changedFields)
             && !array_key_exists('status', $changedFields)
             && !array_key_exists('created_by', $changedFields)
@@ -175,6 +176,10 @@ class AppraisalJobObserver
             } else {
                 return 'removed from hold';
             }
+        }
+
+        if (array_key_exists('mail_sent_at', $changedFields)) {
+            return 'mailed to client';
         }
 
         if (
