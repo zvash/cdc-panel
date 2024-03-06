@@ -81,7 +81,7 @@ class Client extends Resource
                 ->rules('nullable', 'email', 'max:255'),
 
             PhoneNumber::make('Phone')
-                ->countries(['INTERNATIONAL', 'CA', 'US'])
+                ->disableValidation()
                 ->sortable()
                 ->nullable()
                 ->rules('nullable', 'max:255'),

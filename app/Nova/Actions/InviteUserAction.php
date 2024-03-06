@@ -128,7 +128,7 @@ class InviteUserAction extends Action
                 ->nullable(),
 
             PhoneNumber::make('Phone')
-                ->countries(['INTERNATIONAL', 'CA', 'US'])
+                ->disableValidation()
                 ->rules('nullable')
                 ->nullable(),
 

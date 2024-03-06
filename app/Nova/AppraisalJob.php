@@ -715,10 +715,10 @@ class AppraisalJob extends Resource
                 ->hideFromIndex(),
 
             PhoneNumber::make('Contact Phone')
+                ->disableValidation()
                 ->hideFromIndex()
                 ->nullable()
-                ->rules('nullable')
-                ->countries(['INTERNATIONAL', 'CA', 'US']),
+                ->rules('nullable'),
         ]);
     }
 

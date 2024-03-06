@@ -65,6 +65,10 @@ class AppraiserMonthlyInvoice extends Lens
         return 'Appraisers Monthly Invoices';
     }
 
+    private $invoiceNumber;
+
+    private $userId;
+
     /**
      * Get the query builder / paginator for the lens.
      *
@@ -173,7 +177,7 @@ class AppraiserMonthlyInvoice extends Lens
         ";
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')
-                ->select( 'invoice_id', 'invoice_number', 'main_id', 'appraiser_id', 'completed_at_year', 'completed_at_month')
+                ->select('id', 'invoice_id', 'invoice_number', 'main_id', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fees) AS DECIMAL(10,2)) as appraiser_fees, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
                 ->groupBy('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->orderBy('invoice_number', 'desc')
@@ -189,8 +193,11 @@ class AppraiserMonthlyInvoice extends Lens
     public function fields(NovaRequest $request)
     {
         return [
-            ID::hidden('ID', 'invoice_id'),
-            Text::make('Invoice Number', 'invoice_number')->sortable(),
+            ID::make(),
+            Text::make('Invoice Number', 'invoice_number')->sortable()->displayUsing(function ($value) {
+                $this->invoiceNumber = $value;
+                return $value;
+            }),
             Select::make('Year', 'completed_at_year')
                 ->options([
                     Carbon::now()->year => Carbon::now()->year,
@@ -321,12 +328,13 @@ class AppraiserMonthlyInvoice extends Lens
     public function actions(NovaRequest $request)
     {
         return [
-            (new \App\Nova\Actions\Paid($this->resource))
+            (new \App\Nova\Actions\Paid())
                 ->showInline()
                 ->showAsButton()
                 ->confirmText(__('nova.actions.paid.confirm_text'))
                 ->confirmButtonText(__('nova.actions.paid.confirm_button'))
                 ->cancelButtonText(__('nova.actions.paid.cancel_button'))
+                ->setParams($this->getInvoiceNumber(), $this->main_id)
                 ->canSee(function () use ($request) {
                     if ($request instanceof ActionRequest) {
                         return true;
@@ -350,4 +358,5 @@ class AppraiserMonthlyInvoice extends Lens
     {
         return 'appraiser-monthly-invoice';
     }
+
 }

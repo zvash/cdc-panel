@@ -94,7 +94,7 @@ class Invitation extends Resource
                 ->updateRules('unique:invitations,email,{{resourceId}}'),
 
             PhoneNumber::make('Phone')
-                ->countries(['INTERNATIONAL', 'CA', 'US'])
+                ->disableValidation()
                 ->rules('nullable')
                 ->nullable(),
 
