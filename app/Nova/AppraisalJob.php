@@ -808,10 +808,10 @@ class AppraisalJob extends Resource
                 ->cancelButtonText(__('nova.actions.assign_appraiser.cancel_button'))
                 ->showAsButton()
                 ->canSee(function () use ($request) {
-                    return $this->userCanAssignJob($request);
+                    return false && $this->userCanAssignJob($request);
                 })
                 ->canRun(function () use ($request) {
-                    return $this->userCanAssignJob($request);
+                    return false && $this->userCanAssignJob($request);
                 }),
 
             (new RespondToAssignment())
