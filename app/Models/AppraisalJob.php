@@ -124,15 +124,16 @@ class AppraisalJob extends Model implements HasMedia
 
     public function inferReviewerCommission()
     {
+        $reviewerId = $this->inferReviewer();
+        if (!$reviewerId) {
+            return 0;
+        }
         if ($this->reviewer_commission !== null) {
             return $this->reviewer_commission;
         }
-        $reviewerId = $this->inferReviewer();
-        if ($reviewerId) {
-            $reviewer = User::query()->find($this->reviewer_id);
-            if ($reviewer && $reviewer->reviewer_commission) {
-                return $reviewer->reviewer_commission;
-            }
+        $reviewer = User::query()->find($this->reviewer_id);
+        if ($reviewer && $reviewer->reviewer_commission) {
+            return $reviewer->reviewer_commission;
         }
         return 0;
     }
@@ -213,6 +214,7 @@ class AppraisalJob extends Model implements HasMedia
         }
         return $this->taxRate ?? 0;
     }
+
     public function getAdminFeeTaxAttribute(): float
     {
         return $this->calculateTaxPortion($this->admin_fee, $this->fetchTaxRate());
@@ -225,31 +227,52 @@ class AppraisalJob extends Model implements HasMedia
 
     public function getAppraiserFeeAttribute(): float
     {
+        if (!$this->appraiser_id) {
+            return 0;
+        }
         return $this->calculateFeePortion($this->fee_quoted, $this->inferCommission());
     }
 
     public function getAppraiserFeeTaxAttribute(): float
     {
+        if (!$this->appraiser_id) {
+            return 0;
+        }
         return $this->calculateTaxPortion($this->fee_quoted, $this->fetchTaxRate());
     }
 
     public function getAppraiserFeeTotalAttribute(): float
     {
+        if (!$this->appraiser_id) {
+            return 0;
+        }
         return $this->calculateTotal($this->fee_quoted, $this->inferCommission(), $this->fetchTaxRate());
     }
 
     public function getReviewerFeeAttribute(): float
     {
+        $reviewerId = $this->inferReviewer();
+        if (!$reviewerId) {
+            return 0;
+        }
         return $this->calculateFeePortion($this->fee_quoted, $this->inferReviewerCommission());
     }
 
     public function getReviewerFeeTaxAttribute(): float
     {
+        $reviewerId = $this->inferReviewer();
+        if (!$reviewerId) {
+            return 0;
+        }
         return $this->calculateTaxPortion($this->fee_quoted, $this->fetchTaxRate());
     }
 
     public function getReviewerFeeTotalAttribute(): float
     {
+        $reviewerId = $this->inferReviewer();
+        if (!$reviewerId) {
+            return 0;
+        }
         return $this->calculateTotal($this->fee_quoted, $this->inferReviewerCommission(), $this->fetchTaxRate());
     }
 }
