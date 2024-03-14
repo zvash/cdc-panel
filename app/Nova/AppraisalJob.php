@@ -55,6 +55,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Currency;
 use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\HasMany;
@@ -162,6 +163,8 @@ class AppraisalJob extends Resource
             $this->reviewerSection($request),
 
             $this->propertyAddress(),
+
+            $this->appointmentDetails(),
 
             $this->paymentInformation(),
 
@@ -703,6 +706,15 @@ class AppraisalJob extends Resource
 //                ->rules('nullable', new PostalCodeOrNotAvailable())
 //                ->nullable()
 //                ->hideFromIndex(),
+        ]);
+    }
+
+    public function appointmentDetails(): Panel
+    {
+        return $this->panel('Appointment Details', [
+            DateTime::make('Appointment Date', 'appointment_date')
+                ->hideFromIndex()
+                ->nullable(),
         ]);
     }
 

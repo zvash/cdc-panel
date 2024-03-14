@@ -28,6 +28,7 @@ class AppraisalJob extends Model implements HasMedia
         'appraiser_paid_at' => 'datetime',
         'reviewer_paid_at' => 'datetime',
         'admin_paid_at' => 'datetime',
+        'appointment_date' => 'datetime',
     ];
 
     protected $appends = [
