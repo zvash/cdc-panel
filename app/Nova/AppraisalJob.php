@@ -712,7 +712,11 @@ class AppraisalJob extends Resource
     public function appointmentDetails(): Panel
     {
         return $this->panel('Appointment Details', [
-            DateTime::make('Appointment Date', 'appointment_date')
+            Date::make('Appointment Date', 'appointment_date')
+                ->hideFromIndex()
+                ->nullable(),
+
+            \Oneduo\NovaTimeField\Time::make('Appointment Time', 'appointment_time')
                 ->hideFromIndex()
                 ->nullable(),
         ]);

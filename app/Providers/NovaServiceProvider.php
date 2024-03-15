@@ -211,6 +211,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             MenuSection::make('Settings', [
                 MenuItem::resource(\App\Nova\User::class),
                 MenuItem::resource(\App\Nova\ProvinceTax::class),
+                MenuItem::resource(\App\Nova\AppraisalType::class)
+                    ->canSee(function ($request) {
+                        return $request->user()  && $request->user()->hasManagementAccess();
+                    }),
 //                MenuItem::resource(\App\Nova\Province::class),
 //                MenuItem::resource(\App\Nova\City::class),
             ])->icon('cog'),
