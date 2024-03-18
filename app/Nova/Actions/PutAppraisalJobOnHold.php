@@ -48,7 +48,7 @@ class PutAppraisalJobOnHold extends Action
     {
         $model = AppraisalJob::query()->find($models->first()->id);
         $user = auth()->user();
-        if ($user->hasManagementAccess()) {
+        if ($user && ($user->hasManagementAccess() || $user->id == $model->appraiser_id)) {
             DB::beginTransaction();
             try {
                 $model->setAttribute('is_on_hold', true);

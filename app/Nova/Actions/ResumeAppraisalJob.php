@@ -35,7 +35,7 @@ class ResumeAppraisalJob extends Action
     {
         $user = auth()->user();
         $model = AppraisalJob::query()->find($models->first()->id);
-        if ($user->hasManagementAccess()) {
+        if ($user && ($user->hasManagementAccess() || $user->id == $model->appraiser_id)) {
             DB::beginTransaction();
             try {
                 $model->setAttribute('is_on_hold', false)

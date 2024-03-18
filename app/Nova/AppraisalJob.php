@@ -180,17 +180,17 @@ class AppraisalJob extends Resource
     {
         return $this->panel('Order Information', [
             ID::make()->sortable()
-            ->displayUsing(function ($value) {
-                if (
-                    $this->resource->status != AppraisalJobStatus::Completed->value
-                    && $this->resource->status != AppraisalJobStatus::Cancelled->value
-                    && $this->resource->due_date
-                    && $this->resource->due_date->isPast()
-                ) {
-                    return $value . ' ❗️';
-                }
-                return $value;
-            }),
+                ->displayUsing(function ($value) {
+                    if (
+                        $this->resource->status != AppraisalJobStatus::Completed->value
+                        && $this->resource->status != AppraisalJobStatus::Cancelled->value
+                        && $this->resource->due_date
+                        && $this->resource->due_date->isPast()
+                    ) {
+                        return $value . ' ❗️';
+                    }
+                    return $value;
+                }),
 
             Select::make('Client', 'client_id')
                 ->options(\App\Models\Client::pluck('name', 'id'))
@@ -866,7 +866,11 @@ class AppraisalJob extends Resource
                     if ($request instanceof ActionRequest) {
                         return true;
                     }
-                    return $request->user()->hasManagementAccess()
+                    $user = $request->user();
+                    if (!$user) {
+                        return false;
+                    }
+                    return ($user->hasManagementAccess() || $user->id == $this->resource->appraiser_id)
                         && in_array($this->resource->status, [
                             \App\Enums\AppraisalJobStatus::Pending->value,
                             \App\Enums\AppraisalJobStatus::Assigned->value,
@@ -879,7 +883,11 @@ class AppraisalJob extends Resource
                     if ($request instanceof ActionRequest) {
                         return true;
                     }
-                    return $request->user()->hasManagementAccess()
+                    $user = $request->user();
+                    if (!$user) {
+                        return false;
+                    }
+                    return ($user->hasManagementAccess() || $user->id == $this->resource->appraiser_id)
                         && in_array($this->resource->status, [
                             \App\Enums\AppraisalJobStatus::Pending->value,
                             \App\Enums\AppraisalJobStatus::Assigned->value,
@@ -1173,10 +1181,17 @@ class AppraisalJob extends Resource
         if ($request instanceof ActionRequest) {
             return true;
         }
+        $user = $request->user();
+        if (!$user) {
+            return false;
+        }
         if ($this->resource->status == \App\Enums\AppraisalJobStatus::Cancelled->value) {
             return false;
         }
-        return $request->user()->hasManagementAccess()
+        return (
+                $user->hasManagementAccess()
+                || $user->id == $this->resource->appraiser_id
+            )
             && in_array($this->resource->status, [
                 \App\Enums\AppraisalJobStatus::Pending->value,
                 \App\Enums\AppraisalJobStatus::Assigned->value,
