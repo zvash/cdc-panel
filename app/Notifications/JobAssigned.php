@@ -54,7 +54,7 @@ class JobAssigned extends Notification implements ShouldQueue
 
     private function generateJobUrl()
     {
-        $url = rtrim(env('APP_URL'), '/') . Nova::URL('/resources/appraisal-jobs/') . $this->appraisalJob->id;
+        $url = rtrim(config('app.url', 'https://cdcinc.space'), '/') . Nova::URL('/resources/appraisal-jobs/') . $this->appraisalJob->id;
         return $url;
     }
 
