@@ -30,6 +30,15 @@ class AppraisalJobObserver
         $this->handleChangeLog($appraisalJob, true);
     }
 
+    public function deleting(AppraisalJob $appraisalJob)
+    {
+        $appraisalJob->changeLogs()->delete();
+        $appraisalJob->assignments()->delete();
+        $appraisalJob->rejections()->delete();
+        $appraisalJob->files()->delete();
+
+    }
+
     private function handleAppraiserAssignment(AppraisalJob $appraisalJob, bool $saved = false)
     {
         $user = auth()->user();
