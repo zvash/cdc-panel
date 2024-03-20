@@ -112,7 +112,7 @@ class AppraiserInvoice extends Lens
                 users
             ON
                 users.id = appraiser_id
-            INNER JOIN users as reviewers
+            LEFT JOIN users as reviewers
                     ON reviewers.id = reviewer_id
             INNER JOIN
                 provinces

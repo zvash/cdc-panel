@@ -75,7 +75,7 @@ class PDFController extends Controller
                 appraisal_types
             ON
                 appraisal_types.id = appraisal_jobs.appraisal_type_id
-            INNER JOIN users as reviewers
+            LEFT JOIN users as reviewers
                     ON reviewers.id = reviewer_id
             INNER JOIN
                 provinces
@@ -178,7 +178,7 @@ class PDFController extends Controller
                 appraisal_types
             ON
                 appraisal_types.id = appraisal_jobs.appraisal_type_id
-            INNER JOIN users as reviewers
+            LEFT JOIN users as reviewers
                     ON reviewers.id = reviewer_id
             INNER JOIN
                 provinces
