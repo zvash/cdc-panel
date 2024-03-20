@@ -334,7 +334,7 @@ class AppraiserMonthlyInvoice extends Lens
                 ->confirmText(__('nova.actions.paid.confirm_text'))
                 ->confirmButtonText(__('nova.actions.paid.confirm_button'))
                 ->cancelButtonText(__('nova.actions.paid.cancel_button'))
-                ->setParams($this->getInvoiceNumber(), $this->main_id)
+                //->setParams($this->getInvoiceNumber(), $this->main_id)
                 ->canSee(function () use ($request) {
                     if ($request instanceof ActionRequest) {
                         return true;
