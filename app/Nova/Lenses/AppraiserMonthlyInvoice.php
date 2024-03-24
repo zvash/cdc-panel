@@ -80,7 +80,7 @@ class AppraiserMonthlyInvoice extends Lens
     {
         $rawQueryAsString = "
             SELECT
-                appraisal_jobs.id,
+                CONCAT(appraisal_jobs.id, 'A') as id,
                 appraisal_jobs.reference_number,
                 appraisal_jobs.appraisal_type_id,
                 appraisal_jobs.client_id,
@@ -94,7 +94,7 @@ class AppraiserMonthlyInvoice extends Lens
                 appraisal_jobs.completed_at,
                 appraisal_jobs.appraiser_id AS main_id,
                 appraisal_jobs.appraiser_id AS appraiser_id,
-                'Appraiser' AS user_type,
+                'A' AS user_type,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at), '-', appraisal_jobs.appraiser_id) AS invoice_id,
                 users.commission,
@@ -129,7 +129,7 @@ class AppraiserMonthlyInvoice extends Lens
                 (appraiser_id = " . auth()->user()->id . " OR " . (auth()->user()->hasManagementAccess() ? 'TRUE' : 'FALSE') . ")
             UNION
             SELECT
-                appraisal_jobs.id,
+                CONCAT(appraisal_jobs.id, 'R') as id,
                 appraisal_jobs.reference_number,
                 appraisal_jobs.appraisal_type_id,
                 appraisal_jobs.client_id,
@@ -143,7 +143,7 @@ class AppraiserMonthlyInvoice extends Lens
                 appraisal_jobs.completed_at,
                 appraisal_jobs.reviewer_id AS main_id,
                 appraisal_jobs.reviewer_id AS appraiser_id,
-                'Reviewer' AS user_type,
+                'R' AS user_type,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at)) AS invoice_number,
                 CONCAT('INV-', YEAR(completed_at), '-', MONTH(completed_at), '-', appraisal_jobs.reviewer_id) AS invoice_id,
                 users.reviewer_commission as commission,
@@ -177,8 +177,8 @@ class AppraiserMonthlyInvoice extends Lens
         ";
         return $request->withOrdering($request->withFilters(
             $query->fromSub($rawQueryAsString, 'appraisal_jobs')
-                ->select('id', 'invoice_id', 'invoice_number', 'main_id', 'appraiser_id', 'completed_at_year', 'completed_at_month')
-                ->selectRaw('CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fees) AS DECIMAL(10,2)) as appraiser_fees, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax')
+                ->select('invoice_id', 'invoice_number', 'main_id', 'appraiser_id', 'completed_at_year', 'completed_at_month')
+                ->selectRaw('GROUP_CONCAT(id) AS id, GROUP_CONCAT(id) AS DID, CAST(SUM(fee_quoted) AS DECIMAL(10,2)) as fee_quoted, CAST(SUM(cdc_fee_with_tax) AS DECIMAL(10,2)) as cdc_fee_with_tax, CAST(SUM(cdc_tax) AS DECIMAL(10,2)) as cdc_tax, CAST(SUM(appraiser_fees) AS DECIMAL(10,2)) as appraiser_fees, CAST(SUM(appraiser_fee_with_tax) AS DECIMAL(10,2)) as appraiser_fee_with_tax, CAST(SUM(appraiser_tax) AS DECIMAL(10,2)) as appraiser_tax, GROUP_CONCAT(distinct user_type) as UT')
                 ->groupBy('invoice_number', 'appraiser_id', 'completed_at_year', 'completed_at_month')
                 ->orderBy('invoice_number', 'desc')
         ));
@@ -193,7 +193,9 @@ class AppraiserMonthlyInvoice extends Lens
     public function fields(NovaRequest $request)
     {
         return [
-            ID::make(),
+            ID::make('id', 'DID')->displayUsing(function () {
+                return '#';
+            }),
             Text::make('Invoice Number', 'invoice_number')->sortable()->displayUsing(function ($value) {
                 $this->invoiceNumber = $value;
                 return $value;
@@ -334,7 +336,6 @@ class AppraiserMonthlyInvoice extends Lens
                 ->confirmText(__('nova.actions.paid.confirm_text'))
                 ->confirmButtonText(__('nova.actions.paid.confirm_button'))
                 ->cancelButtonText(__('nova.actions.paid.cancel_button'))
-                //->setParams($this->getInvoiceNumber(), $this->main_id)
                 ->canSee(function () use ($request) {
                     if ($request instanceof ActionRequest) {
                         return true;

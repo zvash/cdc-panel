@@ -560,7 +560,7 @@ class AppraisalJob extends Resource
                     } else if ($resource && $resource->reviewer_commission) {
                         $field->value = $resource->reviewer_commission;
                     } else {
-                        $field->value = 10;
+                        $field->value = null;
                     }
                 })
                 ->hideFromIndex()
@@ -1122,7 +1122,7 @@ class AppraisalJob extends Resource
             && !$this->resource->is_on_hold
             && $this->resource->nextValidStatus() == \App\Enums\AppraisalJobStatus::Completed
             && (
-                ($this->resource->appraiser_id == $user->id && !$user->reviewers)
+                ($this->resource->reviewer_id == $user->id)
                 || ($appraiser && $appraiser->reviewers && in_array($user->id, $appraiser->reviewers))
             );
     }
